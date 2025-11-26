@@ -71,10 +71,10 @@ export async function POST(request: NextRequest) {
       name,
       email,
       password: hashedPassword,
-      phone,
-      cpf,
-      birth_date: birthDate,
-      gender,
+      phone: phone || undefined,
+      cpf: cpf || undefined,
+      birth_date: birthDate || undefined,
+      gender: gender || undefined,
     });
     const userId = userResult?.insertId || userResult?.rows?.[0]?.id;
     if (!userId) {
