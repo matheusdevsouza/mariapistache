@@ -1,5 +1,4 @@
-import { Pool } from 'pg'
-import type { QueryResult } from 'pg'
+import { Pool, QueryResult } from 'pg'
 import { createHash } from 'crypto'
 import { 
   encryptPersonalData, 
@@ -101,40 +100,14 @@ interface TestimonialFilters {
   limit?: number
 }
 
-function getDbConfig(): DBConfig | { 
-  connectionString: string; 
-  max?: number; 
-  idleTimeoutMillis?: number; 
-  connectionTimeoutMillis?: number;
-  statement_timeout?: number;
-  query_timeout?: number;
-  ssl?: any;
-  keepAlive?: boolean;
-  keepAliveInitialDelayMillis?: number;
-} {
-  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
-  
-  const baseConfig = {
-    max: 10, 
-    idleTimeoutMillis: 60000,
-    connectionTimeoutMillis: 10000,
-    statement_timeout: 30000,
-    query_timeout: 30000,
-    keepAlive: true,
-    keepAliveInitialDelayMillis: 10000,
-  };
-
+function getDbConfig(): DBConfig | { connectionString: string; max?: number; idleTimeoutMillis?: number; connectionTimeoutMillis?: number } {
   if (process.env.DATABASE_URL) {
-    const connectionString = process.env.DATABASE_URL;
-    const isSupabase = connectionString.includes('supabase') || connectionString.includes('pooler.supabase.com');
-    
     return {
-      connectionString,
-      ...baseConfig,
-      ssl: isSupabase ? {
-        rejectUnauthorized: false,
-      } : undefined,
-    };
+      connectionString: process.env.DATABASE_URL,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+    }
   }
   
   const host = process.env.DB_HOST || 'localhost'
@@ -143,7 +116,7 @@ function getDbConfig(): DBConfig | {
   const password = process.env.DB_PASSWORD || ''
   const database = process.env.DB_NAME || ''
   
-  if (isProduction) {
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
     if (host === 'localhost' || host === '127.0.0.1') {
       throw new Error('DATABASE_URL ou variáveis DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME devem ser configuradas no Vercel. Não é possível conectar ao localhost em produção.')
     }
@@ -155,11 +128,10 @@ function getDbConfig(): DBConfig | {
     user,
     password,
     database,
-    ...baseConfig,
-    ssl: isProduction ? {
-      rejectUnauthorized: false,
-    } : false,
-  };
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+  }
 }
 
 let pool: Pool | null = null
@@ -167,35 +139,17 @@ let pool: Pool | null = null
 function initializePool() {
   if (pool) return pool;
   
-  const config = getDbConfig() as any;
+  const config = getDbConfig()
   
   if (process.env.NODE_ENV === 'development') {
     if (!(globalThis as any)._pgPool) {
-      (globalThis as any)._pgPool = new (Pool as any)(config)
-      
-      (globalThis as any)._pgPool.on('error', (err: Error) => {
-        console.error('❌ Erro inesperado no pool de conexões:', err);
-      });
-      
-      (globalThis as any)._pgPool.on('connect', () => {
-        console.log('✅ Nova conexão estabelecida com o banco de dados');
-      });
+      (globalThis as any)._pgPool = new Pool(config)
     }
     pool = (globalThis as any)._pgPool
   } else {
-    pool = new (Pool as any)(config)
-    
-    if (pool) {
-      pool.on('error', (err: Error) => {
-        console.error('❌ Erro inesperado no pool de conexões:', err);
-      });
-      
-      pool.on('connect', () => {
-        console.log('✅ Nova conexão estabelecida com o banco de dados');
-      });
-    }
+    pool = new Pool(config)
   }
-  return pool as Pool;
+  return pool;
 }
 
 export function getPool(): Pool {
@@ -217,7 +171,7 @@ function convertQueryToPg(sql: string): string {
   return converted;
 }
 
-async function query(sql: string, params: any[] = [], retries = 2): Promise<any> {
+async function query(sql: string, params: any[] = []): Promise<any> {
   try {
     if (typeof window !== 'undefined') {
       throw new Error('Database queries cannot be executed in the browser');
@@ -225,45 +179,17 @@ async function query(sql: string, params: any[] = [], retries = 2): Promise<any>
     const pool = getPool()
     const pgSql = convertQueryToPg(sql);
     
-    let lastError: any;
-    for (let attempt = 0; attempt <= retries; attempt++) {
-      try {
-        const result = await Promise.race([
-          pool.query(pgSql, params),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Query timeout')), 25000)
-          )
-        ]) as QueryResult;
-        
-        if (sql.trim().toUpperCase().startsWith('SELECT')) {
-          return result.rows
-        }
-        
-        return {
-          insertId: result.rows.length > 0 && result.rows[0].id ? result.rows[0].id : 0,
-          affectedRows: result.rowCount,
-          rows: result.rows
-        }
-      } catch (queryError: any) {
-        lastError = queryError;
-        
-        if (attempt < retries && (
-          queryError?.message?.includes('timeout') ||
-          queryError?.message?.includes('Connection terminated') ||
-          queryError?.code === 'ETIMEDOUT' ||
-          queryError?.code === 'ECONNRESET'
-        )) {
-          const delay = (attempt + 1) * 1000;
-          console.warn(`⚠️ Tentativa ${attempt + 1} falhou, tentando novamente em ${delay}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          continue;
-        }
-        
-        throw queryError;
-      }
+    const result = await pool.query(pgSql, params)
+    
+    if (sql.trim().toUpperCase().startsWith('SELECT')) {
+      return result.rows
     }
     
-    throw lastError;
+    return {
+      insertId: result.rows.length > 0 && result.rows[0].id ? result.rows[0].id : 0,
+      affectedRows: result.rowCount,
+      rows: result.rows
+    }
   } catch (error: any) {
     console.error('Erro na query:', error)
     console.error('SQL Original:', sql)
@@ -279,13 +205,6 @@ async function query(sql: string, params: any[] = [], retries = 2): Promise<any>
     } else if (error?.code === 'ECONNREFUSED') {
       console.error(`❌ ERRO DE CONEXÃO: Conexão recusada`)
       console.error(`💡 Verifique se a DATABASE_URL está configurada no Vercel`)
-    } else if (error?.message?.includes('timeout') || error?.message?.includes('Connection terminated')) {
-      console.error(`❌ ERRO DE TIMEOUT: Conexão ou query expirou`)
-      console.error(`💡 Possíveis causas:`)
-      console.error(`   1. Projeto Supabase pausado ou inativo`)
-      console.error(`   2. Muitas conexões simultâneas`)
-      console.error(`   3. Query muito lenta ou bloqueada`)
-      console.error(`   4. Problemas de rede entre Vercel e Supabase`)
     }
     
     throw error
