@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPasswordResetToken, markPasswordResetTokenAsUsed, updateUserPassword } from '@/lib/database'
 import { hashPassword, validatePasswordStrength } from '@/lib/auth'
+
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()

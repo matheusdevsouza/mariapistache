@@ -3,6 +3,8 @@ import crypto from 'crypto';
 import database from '@/lib/database';
 import { sendVerificationEmail } from '@/lib/email';
 import { checkRateLimit, getClientIP } from '@/lib/rate-limit';
+
+export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     const ip = getClientIP(request);

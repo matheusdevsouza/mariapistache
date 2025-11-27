@@ -4,6 +4,8 @@ import { checkRateLimit, getClientIP } from '@/lib/rate-limit'
 import { validateCSRFRequest, createCSRFResponse } from '@/lib/csrf-protection'
 import database from '@/lib/database'
 import { detectSQLInjection, detectXSS } from '@/lib/sql-injection-protection'
+
+export const dynamic = 'force-dynamic';
 const createTransporter = () => {
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST,

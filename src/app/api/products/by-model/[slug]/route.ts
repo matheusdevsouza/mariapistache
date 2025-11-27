@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getProductsByModel, getProductSizes } from '@/lib/database'
+
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string } }

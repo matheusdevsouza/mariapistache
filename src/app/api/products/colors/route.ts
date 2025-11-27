@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getProductColors } from '@/lib/database';
+
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const colors = await getProductColors();

@@ -3,6 +3,8 @@ import { generateToken, setAuthCookie, loginWithEncryptedData } from '@/lib/auth
 import database from '@/lib/database';
 import { checkRateLimit, getClientIP } from '@/lib/rate-limit';
 import { decryptFromDatabase } from '@/lib/transparent-encryption';
+
+export const dynamic = 'force-dynamic';
 import { detectSQLInjection, detectXSS } from '@/lib/sql-injection-protection';
 import { processSafeUserData } from '@/lib/safe-user-data';
 export async function POST(request: NextRequest) {

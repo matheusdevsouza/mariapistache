@@ -3,6 +3,8 @@ import crypto from 'crypto';
 import database from '@/lib/database';
 import { sendVerificationEmail } from '@/lib/email';
 import { hashPassword, validatePasswordStrength } from '@/lib/auth';
+
+export const dynamic = 'force-dynamic';
 import { processSafeUserData } from '@/lib/safe-user-data';
 import { checkRateLimit, getClientIP } from '@/lib/rate-limit';
 export async function POST(request: NextRequest) {
