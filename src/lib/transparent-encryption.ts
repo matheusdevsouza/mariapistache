@@ -8,15 +8,15 @@ function generateLegacyKey(): Buffer {
   }
   return crypto.createHash('sha256').update(LEGACY_SECRET_KEY, 'utf8').digest();
 }
-export function encryptValue(value: string | null): string | null {
-  if (!value || value.trim() === '') {
+export function encryptValue(value: string | null | undefined): string | null {
+  if (value === null || value === undefined || (typeof value === 'string' && value.trim() === '')) {
     return null;
   }
   try {
-    return encrypt(value);
+    return encrypt(String(value));
   } catch (error) {
     console.error('Erro ao criptografar valor:', error);
-    return value; 
+    return null;
   }
 }
 export function decryptValue(encryptedValue: string | null): string | null {
@@ -58,8 +58,11 @@ export function encryptObject(obj: any, fieldsToEncrypt: string[]): any {
   if (!obj) return obj;
   const encrypted = { ...obj };
   fieldsToEncrypt.forEach(field => {
-    if (encrypted[field] !== undefined && encrypted[field] !== null) {
-      encrypted[field] = encryptValue(encrypted[field]);
+    if (encrypted[field] !== undefined && encrypted[field] !== null && encrypted[field] !== '') {
+      const encryptedValue = encryptValue(encrypted[field]);
+      if (encryptedValue !== null) {
+        encrypted[field] = encryptedValue;
+      }
     }
   });
   return encrypted;

@@ -628,12 +628,25 @@ export interface CreateUserData {
   name: string;
   email: string;
   password: string;
-  phone?: string;
-  cpf?: string;
-  birth_date?: string;
-  gender?: 'M' | 'F' | 'Other';
+  phone?: string | null;
+  cpf?: string | null;
+  birth_date?: string | null;
+  gender?: 'M' | 'F' | 'Other' | null;
 }
 async function createUser(userData: CreateUserData): Promise<any> {
+  const phone = userData.phone && typeof userData.phone === 'string' && userData.phone.trim() 
+    ? userData.phone.trim() 
+    : null;
+  const cpf = userData.cpf && typeof userData.cpf === 'string' && userData.cpf.trim() 
+    ? userData.cpf.trim() 
+    : null;
+  const birthDate = userData.birth_date && typeof userData.birth_date === 'string' && userData.birth_date.trim() 
+    ? userData.birth_date.trim() 
+    : null;
+  const gender = userData.gender && typeof userData.gender === 'string' && userData.gender.trim() 
+    ? userData.gender.trim() 
+    : null;
+  
   const sql = `
     INSERT INTO users (name, email, password, phone, cpf, birth_date, gender, email_verified_at, is_active, auth_id)
     VALUES (?, ?, ?, ?, ?, ?, ?, NULL, TRUE, gen_random_uuid())
@@ -642,10 +655,10 @@ async function createUser(userData: CreateUserData): Promise<any> {
     userData.name,
     userData.email,
     userData.password, 
-    userData.phone && userData.phone.trim() ? userData.phone.trim() : null,
-    userData.cpf && userData.cpf.trim() ? userData.cpf.trim() : null,
-    userData.birth_date && userData.birth_date.trim() ? userData.birth_date.trim() : null,
-    userData.gender && userData.gender.trim() ? userData.gender.trim() : null,
+    phone,
+    cpf,
+    birthDate,
+    gender,
   ];
   return await queryWithEncryption(sql, params, 'users');
 }
@@ -1041,8 +1054,12 @@ export async function queryWithEncryption(sql: string, params: any[] = [], table
             const fieldNames = fieldMatch[1].split(',').map(f => f.trim());
             fieldsToEncrypt.forEach(fieldToEncrypt => {
               const fieldIndex = fieldNames.indexOf(fieldToEncrypt);
-              if (fieldIndex !== -1 && processedParams[fieldIndex]) {
-                processedParams[fieldIndex] = encryptValue(processedParams[fieldIndex]);
+              if (fieldIndex !== -1) {
+                const value = processedParams[fieldIndex];
+                if (value != null && value !== '' && typeof value === 'string') {
+                  const encrypted = encryptValue(value);
+                  processedParams[fieldIndex] = encrypted;
+                }
               }
             });
           }

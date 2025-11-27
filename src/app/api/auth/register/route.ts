@@ -73,10 +73,10 @@ export async function POST(request: NextRequest) {
       name,
       email,
       password: hashedPassword,
-      phone: phone || undefined,
-      cpf: cpf || undefined,
-      birth_date: birthDate || undefined,
-      gender: gender || undefined,
+      phone: phone ?? null,
+      cpf: cpf ?? null,
+      birth_date: birthDate ?? null,
+      gender: gender ?? null,
     });
     const userId = userResult?.insertId || userResult?.rows?.[0]?.id;
     if (!userId) {
