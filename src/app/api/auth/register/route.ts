@@ -25,8 +25,22 @@ export async function POST(request: NextRequest) {
     const email = (body.email || '').trim().toLowerCase();
     const password = body.password || '';
     const confirmPassword = body.confirmPassword || '';
-    const phone = body.phone && String(body.phone).trim() ? String(body.phone).trim().substring(0, 50) : null;
-    const cpf = body.cpf ? String(body.cpf).trim() : null;
+    let phone = body.phone && String(body.phone).trim() ? String(body.phone).trim().substring(0, 50) : null;
+    let cpf = body.cpf ? String(body.cpf).trim() : null;
+    
+    if (phone && !phone.match(/^\+?[0-9]{10,15}$/) && !phone.match(/^\([0-9]{2}\)\s?[0-9]{4,5}-?[0-9]{4}$/)) {
+      return NextResponse.json(
+        { success: false, message: 'Formato de telefone inválido' },
+        { status: 400 }
+      );
+    }
+    
+    if (cpf && !cpf.match(/^[0-9]{11}$/) && !cpf.match(/^[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}$/)) {
+      return NextResponse.json(
+        { success: false, message: 'Formato de CPF inválido' },
+        { status: 400 }
+      );
+    }
     const birthDate = body.birth_date ? String(body.birth_date).trim() : null;
     const gender = body.gender || null;
     if (!name || !email || !password || !confirmPassword) {
