@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateUser, verifyAdminAccess } from '@/lib/auth'
 import database from '@/lib/database'
-import { join } from 'path'
-import { existsSync, statSync } from 'fs'
+import { uploadFile } from '@/lib/storage'
 
 export const dynamic = 'force-dynamic';
-import { mkdir, writeFile } from 'fs/promises'
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -61,40 +59,14 @@ export async function POST(
     const ext = originalExt.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
     const fileName = `model_${modelId}_${timestamp}_${random}.${ext}`
     console.log('📝 [MODEL UPLOAD] Nome do arquivo gerado:', fileName)
-    const uploadDir = join(process.cwd(), 'public', 'uploads', 'models')
-    console.log('📁 [MODEL UPLOAD] Diretório de upload:', uploadDir)
-    if (!existsSync(uploadDir)) {
-      console.log('📁 [MODEL UPLOAD] Criando diretório:', uploadDir)
-      await mkdir(uploadDir, { recursive: true })
-      console.log('✅ [MODEL UPLOAD] Diretório criado com sucesso')
-    } else {
-      console.log('✅ [MODEL UPLOAD] Diretório já existe')
-    }
-    const filePath = join(uploadDir, fileName)
-    console.log('💾 [MODEL UPLOAD] Caminho completo do arquivo:', filePath)
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    console.log('💾 [MODEL UPLOAD] Buffer criado, tamanho:', buffer.length)
-    await writeFile(filePath, buffer)
-    console.log('✅ [MODEL UPLOAD] Arquivo salvo no disco')
-    if (!existsSync(filePath)) {
-      console.error('❌ [MODEL UPLOAD] Arquivo não foi salvo corretamente')
-      return NextResponse.json({ success: false, error: 'Erro ao salvar arquivo' }, { status: 500 })
-    }
-    const fileStats = statSync(filePath)
-    console.log('✅ [MODEL UPLOAD] Arquivo verificado:', {
-      path: filePath,
-      size: fileStats.size,
-      exists: true
+    const blobPath = `models/${fileName}`
+    console.log('💾 [MODEL UPLOAD] Fazendo upload para Blob Storage:', blobPath)
+    const uploadResult = await uploadFile(file, blobPath, {
+      contentType: file.type,
+      addRandomSuffix: false,
     })
-    if (fileStats.size !== buffer.length) {
-      console.error('❌ [MODEL UPLOAD] Tamanho do arquivo não corresponde:', {
-        expected: buffer.length,
-        actual: fileStats.size
-      })
-      return NextResponse.json({ success: false, error: 'Erro ao salvar arquivo (tamanho incorreto)' }, { status: 500 })
-    }
-    const imageUrl = `/uploads/models/${fileName}`
+    console.log('✅ [MODEL UPLOAD] Arquivo enviado com sucesso:', uploadResult.url)
+    const imageUrl = uploadResult.url
     console.log('🔗 [MODEL UPLOAD] URL da imagem:', imageUrl)
     await database.query('UPDATE models SET image_url = ?, updated_at = NOW() WHERE id = ?', [imageUrl, modelId])
     console.log('✅ [MODEL UPLOAD] Banco de dados atualizado')

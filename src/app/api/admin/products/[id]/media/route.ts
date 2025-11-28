@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import database from '@/lib/database'
 import { authenticateUser, verifyAdminAccess } from '@/lib/auth'
-import { writeFile, mkdir, unlink } from 'fs/promises'
-import { join } from 'path'
+import { uploadFile, deleteFile } from '@/lib/storage'
+import { validateFileContent } from '@/lib/secure-upload'
 
 export const dynamic = 'force-dynamic';
-import { existsSync } from 'fs'
-import { validateFileContent, sanitizeFilename } from '@/lib/secure-upload'
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -137,19 +135,16 @@ export async function POST(
         const randomString = Math.random().toString(36).substring(2, 15)
         const fileExtension = file.name.split('.').pop() || 'jpg'
         const fileName = `${productId}_${timestamp}_${randomString}.${fileExtension}`
-        const uploadDir = type === 'image' 
-          ? join(process.cwd(), 'public', 'uploads', 'products')
-          : join(process.cwd(), 'public', 'uploads', 'products', 'videos')
-        if (!existsSync(uploadDir)) {
-          await mkdir(uploadDir, { recursive: true })
-        }
-        const filePath = join(uploadDir, fileName)
-        const bytes = await file.arrayBuffer()
-        const buffer = Buffer.from(bytes)
-        await writeFile(filePath, buffer)
-        const mediaUrl = type === 'image' 
-          ? `/uploads/products/${fileName}`
-          : `/uploads/products/videos/${fileName}`
+        const blobPath = type === 'image' 
+          ? `products/${fileName}`
+          : `products/videos/${fileName}`
+        
+        const uploadResult = await uploadFile(file, blobPath, {
+          contentType: file.type,
+          addRandomSuffix: false,
+        })
+        
+        const mediaUrl = uploadResult.url
         let insertQuery, queryParams
         if (type === 'image') {
           insertQuery = `
@@ -325,17 +320,18 @@ export async function DELETE(
         )
         try {
           if (imageData.image_url) {
-            const fileName = imageData.image_url.split('/').pop()
-            if (fileName) {
-              const filePath = join(process.cwd(), 'public', 'uploads', 'products', fileName)
-              if (existsSync(filePath)) {
-                const { unlink } = await import('fs/promises')
-                await unlink(filePath)
+            if (imageData.image_url.startsWith('http')) {
+              try {
+                const url = new URL(imageData.image_url)
+                const pathname = url.pathname.startsWith('/') ? url.pathname.slice(1) : url.pathname
+                await deleteFile(pathname)
+              } catch (urlError) {
+                console.warn('Erro ao extrair pathname da URL do blob:', urlError)
               }
             }
           }
         } catch (fileError) {
-          console.warn('Erro ao remover arquivo físico:', fileError)
+          console.warn('Erro ao remover arquivo do storage:', fileError)
         }
       }
     } else if (type === 'video') {
@@ -351,17 +347,18 @@ export async function DELETE(
         ).catch(() => {})
         try {
           if (videoData.video_url) {
-            const fileName = videoData.video_url.split('/').pop()
-            if (fileName) {
-              const filePath = join(process.cwd(), 'public', 'uploads', 'products', 'videos', fileName)
-              if (existsSync(filePath)) {
-                const { unlink } = await import('fs/promises')
-                await unlink(filePath)
+            if (videoData.video_url.startsWith('http')) {
+              try {
+                const url = new URL(videoData.video_url)
+                const pathname = url.pathname.startsWith('/') ? url.pathname.slice(1) : url.pathname
+                await deleteFile(pathname)
+              } catch (urlError) {
+                console.warn('Erro ao extrair pathname da URL do blob:', urlError)
               }
             }
           }
         } catch (fileError) {
-          console.warn('Erro ao remover arquivo físico:', fileError)
+          console.warn('Erro ao remover arquivo do storage:', fileError)
         }
       }
     }
