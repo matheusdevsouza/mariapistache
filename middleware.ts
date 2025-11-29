@@ -292,24 +292,26 @@ export async function middleware(request: NextRequest) {
       pathname, 
       userAgent 
     });
-    return new NextResponse('Access Denied - Suspicious User Agent', { 
+    const errorResponse = new NextResponse('Access Denied - Suspicious User Agent', { 
       status: 403,
       headers: {
         'X-Block-Reason': 'Suspicious User Agent',
         'X-Security-Level': 'HIGH'
       }
     });
+    return setSecurityHeaders(errorResponse);
   }
 
   if (BLOCKED_IPS.has(clientIP)) {
     logSecurityEvent('BLOCKED_IP_ACCESS', { ip: clientIP, pathname });
-    return new NextResponse('Access Denied - IP Blocked', { 
+    const errorResponse = new NextResponse('Access Denied - IP Blocked', { 
       status: 403,
       headers: {
         'X-Block-Reason': 'IP Blocked',
         'X-Security-Level': 'HIGH'
       }
     });
+    return setSecurityHeaders(errorResponse);
   }
 
   const rateLimit = checkRateLimit(clientIP);
@@ -320,7 +322,7 @@ export async function middleware(request: NextRequest) {
       remaining: rateLimit.remaining,
       userAgent 
     });
-    return new NextResponse('Too Many Requests - Rate Limit Exceeded', {
+    const errorResponse = new NextResponse('Too Many Requests - Rate Limit Exceeded', {
       status: 429,
       headers: { 
         'Retry-After': rateLimit.remaining.toString(),
@@ -330,6 +332,7 @@ export async function middleware(request: NextRequest) {
         'X-Security-Level': 'HIGH'
       }
     });
+    return setSecurityHeaders(errorResponse);
   }
 
   if (detectSuspiciousPatterns(request)) {
@@ -346,13 +349,14 @@ export async function middleware(request: NextRequest) {
       BLOCKED_IPS.delete(clientIP);
     }, 60 * 60000);
     
-    return new NextResponse('Bad Request - Suspicious Activity Detected', { 
+    const errorResponse = new NextResponse('Bad Request - Suspicious Activity Detected', { 
       status: 400,
       headers: {
         'X-Block-Reason': 'Suspicious Pattern',
         'X-Security-Level': 'HIGH'
       }
     });
+    return setSecurityHeaders(errorResponse);
   }
 
   const response = NextResponse.next();
@@ -371,7 +375,8 @@ export async function middleware(request: NextRequest) {
         pathname,
         userAgent
       });
-      return NextResponse.redirect(new URL('/login', request.url));
+      const redirectResponse = NextResponse.redirect(new URL('/login', request.url));
+      return setSecurityHeaders(redirectResponse);
     }
     
     if (isProtectedRoute(pathname)) {
@@ -380,7 +385,8 @@ export async function middleware(request: NextRequest) {
         pathname,
         userAgent
       });
-      return NextResponse.redirect(new URL('/login', request.url));
+      const redirectResponse = NextResponse.redirect(new URL('/login', request.url));
+      return setSecurityHeaders(redirectResponse);
     }
     
     return response;
@@ -396,7 +402,8 @@ export async function middleware(request: NextRequest) {
           pathname,
           userAgent
         });
-        return NextResponse.redirect(new URL('/login', request.url));
+        const redirectResponse = NextResponse.redirect(new URL('/login', request.url));
+        return setSecurityHeaders(redirectResponse);
       }
       
       if (isProtectedRoute(pathname)) {
@@ -405,7 +412,8 @@ export async function middleware(request: NextRequest) {
           pathname,
           userAgent
         });
-        return NextResponse.redirect(new URL('/login', request.url));
+        const redirectResponse = NextResponse.redirect(new URL('/login', request.url));
+        return setSecurityHeaders(redirectResponse);
       }
       
       return response;
@@ -419,7 +427,8 @@ export async function middleware(request: NextRequest) {
           userId: payload.userId,
           userAgent
         });
-        return NextResponse.redirect(new URL('/404', request.url));
+        const redirectResponse = NextResponse.redirect(new URL('/404', request.url));
+        return setSecurityHeaders(redirectResponse);
       }
 
       logSecurityEvent('ADMIN_ACCESS', {
@@ -455,7 +464,8 @@ export async function middleware(request: NextRequest) {
         error: error instanceof Error ? error.message : 'Unknown error',
         userAgent
       });
-      return NextResponse.redirect(new URL('/login', request.url));
+      const redirectResponse = NextResponse.redirect(new URL('/login', request.url));
+      return setSecurityHeaders(redirectResponse);
     }
     
     if (isProtectedRoute(pathname)) {
@@ -465,7 +475,8 @@ export async function middleware(request: NextRequest) {
         error: error instanceof Error ? error.message : 'Unknown error',
         userAgent
       });
-      return NextResponse.redirect(new URL('/login', request.url));
+      const redirectResponse = NextResponse.redirect(new URL('/login', request.url));
+      return setSecurityHeaders(redirectResponse);
     }
     
     return response;
