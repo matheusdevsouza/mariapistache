@@ -136,7 +136,7 @@ export default function PedidoStatusPage() {
     }, pollInterval)
 
     return () => clearInterval(interval)
-  }, [orderStatus?.payment_status, checkoutOpened, fetchOrderStatus])
+  }, [orderStatus, checkoutOpened, fetchOrderStatus])
 
   const openCheckoutInNewTab = useCallback(() => {
     if (!initPoint || !initPoint.startsWith('http')) {

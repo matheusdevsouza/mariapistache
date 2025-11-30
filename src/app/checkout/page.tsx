@@ -161,7 +161,9 @@ export default function CheckoutPage() {
               return prev
             })
             
-            if (!customerData.street || !customerData.city) {
+            const currentStreet = customerData.street
+            const currentCity = customerData.city
+            if (!currentStreet || !currentCity) {
               fetch(`https://viacep.com.br/ws/${savedZipCode}/json/`)
                 .then(res => res.json())
                 .then(data => {
@@ -184,6 +186,7 @@ export default function CheckoutPage() {
     } catch (error) {
       console.error('Erro ao carregar frete salvo:', error)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) 
 
   useEffect(() => {
