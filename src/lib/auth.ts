@@ -187,7 +187,6 @@ export function setAuthCookie(response: NextResponse, token: string, refreshToke
     sameSite: 'lax', 
     maxAge: 24 * 60 * 60, 
     path: '/',
-    domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : undefined,
   });
   if (refreshToken) {
     response.cookies.set('refresh-token', refreshToken, {
@@ -196,56 +195,24 @@ export function setAuthCookie(response: NextResponse, token: string, refreshToke
       sameSite: 'lax', 
       maxAge: 7 * 24 * 60 * 60, 
       path: '/api/auth/refresh',
-      domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : undefined,
     });
   }
   return response;
 }
 export function clearAuthCookies(response: NextResponse): NextResponse {
   const isProduction = process.env.NODE_ENV === 'production';
-  const domain = isProduction ? process.env.DOMAIN : undefined;
   const baseOptions = {
     httpOnly: true,
     secure: isProduction,
     sameSite: 'lax' as const,
-    maxAge: 0, 
+    maxAge: 0,
+    path: '/',
   };
 
-  response.cookies.set('auth-token', '', {
-    ...baseOptions,
-    path: '/',
-    domain: domain,
-  });
   response.cookies.delete('auth-token');
+  response.cookies.set('auth-token', '', baseOptions);
   
-  if (domain) {
-    response.cookies.set('auth-token', '', {
-      ...baseOptions,
-      path: '/',
-      domain: domain,
-    });
-  }
-  
-  response.cookies.set('refresh-token', '', {
-    ...baseOptions,
-    path: '/api/auth/refresh',
-    domain: domain,
-  });
   response.cookies.delete('refresh-token');
-  
-  if (domain) {
-    response.cookies.set('refresh-token', '', {
-      ...baseOptions,
-      path: '/api/auth/refresh',
-      domain: domain,
-    });
-  }
-  
-  response.cookies.set('auth-token', '', {
-    ...baseOptions,
-    path: '/',
-  });
-  
   response.cookies.set('refresh-token', '', {
     ...baseOptions,
     path: '/api/auth/refresh',

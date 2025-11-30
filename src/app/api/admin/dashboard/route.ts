@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import database from '@/lib/database';
 import { authenticateUser, verifyAdminAccess } from '@/lib/auth';
+import { decryptFromDatabase } from '@/lib/transparent-encryption';
 
 export const dynamic = 'force-dynamic';
 
@@ -124,14 +125,17 @@ export async function GET(request: NextRequest) {
     const previousRevenue = parseFloat(revenueStats[0]?.previous) || 0;
     const revenueChange = previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : (currentRevenue > 0 ? 100 : 0);
 
-    const processedRecentOrders = recentOrders.map((order: any) => ({
-      id: order.id,
-      orderNumber: order.order_number,
-      customerName: order.customer_name || null,
-      total: parseFloat(order.total_amount),
-      status: order.status,
-      createdAt: order.created_at
-    }));
+    const processedRecentOrders = recentOrders.map((order: any) => {
+      const decryptedOrder = decryptFromDatabase('orders', order);
+      return {
+        id: decryptedOrder.id,
+        orderNumber: decryptedOrder.order_number,
+        customerName: decryptedOrder.customer_name || null,
+        total: parseFloat(decryptedOrder.total_amount),
+        status: decryptedOrder.status,
+        createdAt: decryptedOrder.created_at
+      };
+    });
     const processedRecentProducts = recentProducts.map((product: any) => ({
       id: product.id,
       name: product.name,

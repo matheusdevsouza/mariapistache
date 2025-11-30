@@ -125,14 +125,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthenticated(false);
       setEmailVerified(false);
       
-      const response = await fetch('/api/auth/logout', {
+      await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include', 
       });
       
       setTimeout(() => {
         checkAuth();
-      }, 100);
+      }, 300);
     } catch (error) {
       console.error('Erro no logout:', error);
       setUser(null);
