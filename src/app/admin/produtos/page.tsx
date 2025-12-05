@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { 
   FaBox, 
@@ -71,6 +71,101 @@ const getProductImage = (product: Product): string | null => {
   }
   return null;
 };
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+};
+
+const ProductCard = ({ product, onDelete }: { product: Product; onDelete: (id: number) => void }) => (
+  <motion.div
+    variants={itemVariants}
+    className="bg-white border border-primary-100 rounded-2xl p-4 hover:border-primary-200 transition-all duration-300 hover:shadow-lg hover:shadow-primary-100/50"
+  >
+    <div className="flex items-start gap-3 mb-3">
+      <div className="w-16 h-16 rounded-xl overflow-hidden bg-sand-50 border border-primary-100 flex-shrink-0">
+        {getProductImage(product) ? (
+          <Image
+            src={getProductImage(product)!}
+            alt={product.name}
+            width={64}
+            height={64}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-sand-50 flex items-center justify-center">
+            <FaBox className="text-sage-400" size={24} />
+          </div>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <h3 className="text-sage-900 font-semibold text-sm mb-1 truncate">{product.name}</h3>
+        <div className="text-primary-600 font-bold text-lg">
+          R$ {product.price?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}
+        </div>
+      </div>
+    </div>
+    <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center gap-2">
+        <div className={`w-2 h-2 rounded-full ${
+          (product.stock_quantity || 0) > 20 ? 'bg-green-500' :
+          (product.stock_quantity || 0) > 10 ? 'bg-yellow-500' : 'bg-red-500'
+        }`}></div>
+        <span className={`text-xs font-medium ${
+          (product.stock_quantity || 0) > 20 ? 'text-green-600' :
+          (product.stock_quantity || 0) > 10 ? 'text-yellow-600' : 'text-red-600'
+        }`}>
+          Estoque: {product.stock_quantity || 0}
+        </span>
+      </div>
+      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+        product.is_active 
+          ? 'bg-green-200 text-green-600 border border-green-300'
+          : 'bg-red-200 text-red-600 border border-red-300'
+      }`}>
+        {product.is_active ? 'Ativo' : 'Inativo'}
+      </span>
+    </div>
+    <div className="flex items-center justify-between text-xs text-sage-500 mb-3">
+      <span>ID: {product.id}</span>
+      {product.sku && <span>SKU: {product.sku}</span>}
+    </div>
+    <div className="flex items-center gap-2">
+      <Link 
+        href={`/admin/produtos/${product.id}`} 
+        className="flex-1 bg-primary-100 hover:bg-primary-200 text-primary-600 hover:text-primary-700 px-3 py-2 rounded-lg transition-all duration-300 text-center text-sm font-medium flex items-center justify-center gap-1"
+      >
+        <FaEye size={16} />
+        Ver
+      </Link>
+      <Link 
+        href={`/admin/produtos/${product.id}`} 
+        className="flex-1 bg-primary-100 hover:bg-primary-200 text-primary-600 hover:text-primary-700 px-3 py-2 rounded-lg transition-all duration-300 text-center text-sm font-medium flex items-center justify-center gap-1"
+      >
+        <FaEdit size={16} />
+        Editar
+      </Link>
+      <button 
+        onClick={() => onDelete(product.id)}
+        className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 px-3 py-2 rounded-lg transition-all duration-300 text-center text-sm font-medium flex items-center justify-center gap-1"
+      >
+        <FaTrash size={16} />
+        Excluir
+      </button>
+    </div>
+  </motion.div>
+);
+
 export default function ProdutosPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [models, setModels] = useState<Model[]>([]);
@@ -96,6 +191,10 @@ export default function ProdutosPage() {
   const [categorySearchTerm, setCategorySearchTerm] = useState('');
   const [addingCategories, setAddingCategories] = useState(false);
   const [loadingCategories, setLoadingCategories] = useState<Record<number, boolean>>({});
+  const [showDeleteProductConfirm, setShowDeleteProductConfirm] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<number | null>(null);
+  const [showDeleteCategoryConfirm, setShowDeleteCategoryConfirm] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<{ productId: number; categoryId: number; categoryName: string } | null>(null);
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
@@ -285,24 +384,38 @@ export default function ProdutosPage() {
     }
   };
 
-  const handleRemoveCategory = async (productId: number, categoryId: number, categoryName: string) => {
-    if (!confirm(`Tem certeza que deseja remover a categoria "${categoryName}" deste produto?`)) {
-      return;
-    }
+  const handleRemoveCategoryClick = (productId: number, categoryId: number, categoryName: string) => {
+    setCategoryToDelete({ productId, categoryId, categoryName });
+    setShowDeleteCategoryConfirm(true);
+  };
+
+  const handleRemoveCategoryConfirm = async () => {
+    if (!categoryToDelete) return;
     try {
-      const response = await fetch(`/api/admin/products/${productId}/categories?categoryId=${categoryId}`, {
+      const response = await fetch(`/api/admin/products/${categoryToDelete.productId}/categories?categoryId=${categoryToDelete.categoryId}`, {
         method: 'DELETE'
       });
       const result = await response.json();
       if (result.success) {
-        fetchProductCategories(productId);
+        setShowDeleteCategoryConfirm(false);
+        setCategoryToDelete(null);
+        fetchProductCategories(categoryToDelete.productId);
       } else {
-        alert(result.error || 'Erro ao remover categoria');
+        setError(result.error || 'Erro ao remover categoria');
+        setShowDeleteCategoryConfirm(false);
+        setCategoryToDelete(null);
       }
     } catch (error) {
       console.error('Erro ao remover categoria:', error);
-      alert('Erro ao conectar com o servidor');
+      setError('Erro ao conectar com o servidor');
+      setShowDeleteCategoryConfirm(false);
+      setCategoryToDelete(null);
     }
+  };
+
+  const handleRemoveCategoryCancel = () => {
+    setShowDeleteCategoryConfirm(false);
+    setCategoryToDelete(null);
   };
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -317,22 +430,37 @@ export default function ProdutosPage() {
     if (sortBy !== field) return <FaSort className="text-sage-400" />;
     return sortOrder === 'asc' ? <FaSortUp className="text-primary-500" /> : <FaSortDown className="text-primary-500" />;
   };
-  const handleDeleteProduct = async (productId: number) => {
-    if (!confirm('Tem certeza que deseja remover este produto? Esta ação não pode ser desfeita.')) return;
+  const handleDeleteProductClick = (productId: number) => {
+    setProductToDelete(productId);
+    setShowDeleteProductConfirm(true);
+  };
+
+  const handleDeleteProductConfirm = async () => {
+    if (!productToDelete) return;
     try {
-      const response = await fetch(`/api/admin/products/${productId}`, {
+      const response = await fetch(`/api/admin/products/${productToDelete}`, {
         method: 'DELETE'
       });
       const result = await response.json();
       if (result.success) {
+        setShowDeleteProductConfirm(false);
+        setProductToDelete(null);
         fetchProducts();
       } else {
-        alert('Erro ao remover produto: ' + result.error);
+        setError('Erro ao remover produto: ' + result.error);
+        setShowDeleteProductConfirm(false);
+        setProductToDelete(null);
       }
     } catch (error) {
-
-      alert('Erro ao conectar com o servidor');
+      setError('Erro ao conectar com o servidor');
+      setShowDeleteProductConfirm(false);
+      setProductToDelete(null);
     }
+  };
+
+  const handleDeleteProductCancel = () => {
+    setShowDeleteProductConfirm(false);
+    setProductToDelete(null);
   };
   const clearFilters = () => {
     setSearchTerm('');
@@ -342,97 +470,7 @@ export default function ProdutosPage() {
     setSortOrder('desc');
     setPage(1);
   };
-  const ProductCard = ({ product }: { product: Product }) => (
-    <motion.div
-      variants={itemVariants}
-      className="bg-white border border-primary-100 rounded-2xl p-4 hover:border-primary-200 transition-all duration-300 hover:shadow-lg hover:shadow-primary-100/50"
-    >
-      <div className="flex items-start gap-3 mb-3">
-        <div className="w-16 h-16 rounded-xl overflow-hidden bg-sand-50 border border-primary-100 flex-shrink-0">
-          {getProductImage(product) ? (
-            <Image
-              src={getProductImage(product)!}
-              alt={product.name}
-              width={64}
-              height={64}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-sand-50 flex items-center justify-center">
-              <FaBox className="text-sage-400" size={24} />
-            </div>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sage-900 font-semibold text-sm mb-1 truncate">{product.name}</h3>
-          <div className="text-primary-600 font-bold text-lg">
-            R$ {product.price?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${
-            (product.stock_quantity || 0) > 20 ? 'bg-green-500' :
-            (product.stock_quantity || 0) > 10 ? 'bg-yellow-500' : 'bg-red-500'
-          }`}></div>
-          <span className={`text-xs font-medium ${
-            (product.stock_quantity || 0) > 20 ? 'text-green-600' :
-            (product.stock_quantity || 0) > 10 ? 'text-yellow-600' : 'text-red-600'
-          }`}>
-            Estoque: {product.stock_quantity || 0}
-          </span>
-        </div>
-        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-          product.is_active 
-            ? 'bg-green-200 text-green-600 border border-green-300'
-            : 'bg-red-200 text-red-600 border border-red-300'
-        }`}>
-          {product.is_active ? 'Ativo' : 'Inativo'}
-        </span>
-      </div>
-      <div className="flex items-center justify-between text-xs text-sage-500 mb-3">
-        <span>ID: {product.id}</span>
-        {product.sku && <span>SKU: {product.sku}</span>}
-      </div>
-      <div className="flex items-center gap-2">
-        <Link 
-          href={`/admin/produtos/${product.id}`} 
-          className="flex-1 bg-primary-100 hover:bg-primary-200 text-primary-600 hover:text-primary-700 px-3 py-2 rounded-lg transition-all duration-300 text-center text-sm font-medium flex items-center justify-center gap-1"
-        >
-          <FaEye size={16} />
-          Ver
-        </Link>
-        <Link 
-          href={`/admin/produtos/${product.id}`} 
-          className="flex-1 bg-primary-100 hover:bg-primary-200 text-primary-600 hover:text-primary-700 px-3 py-2 rounded-lg transition-all duration-300 text-center text-sm font-medium flex items-center justify-center gap-1"
-        >
-          <FaEdit size={16} />
-          Editar
-        </Link>
-        <button 
-          onClick={() => handleDeleteProduct(product.id)}
-          className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 px-3 py-2 rounded-lg transition-all duration-300 text-center text-sm font-medium flex items-center justify-center gap-1"
-        >
-          <FaTrash size={16} />
-          Excluir
-        </button>
-      </div>
-    </motion.div>
-  );
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
+  
   if (loading && products.length === 0) {
     return (
       <div className="min-h-screen bg-primary-50 flex items-center justify-center">
@@ -720,7 +758,7 @@ export default function ProdutosPage() {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleRemoveCategory(product.id, category.id, category.name);
+                                    handleRemoveCategoryClick(product.id, category.id, category.name);
                                   }}
                                   className="opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-700 transition-opacity"
                                   title="Remover categoria"
@@ -765,7 +803,7 @@ export default function ProdutosPage() {
                           <FaEdit size={16} />
                         </Link>
                         <button 
-                          onClick={() => handleDeleteProduct(product.id)}
+                          onClick={() => handleDeleteProductClick(product.id)}
                           className="p-1 text-red-600 hover:text-red-700 hover:bg-red-100 rounded-lg transition-all duration-300"
                         >
                           <FaTrash size={16} />
@@ -792,7 +830,7 @@ export default function ProdutosPage() {
             {products && products.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
                 {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product.id} product={product} onDelete={handleDeleteProductClick} />
                 ))}
               </div>
             ) : (
@@ -1050,6 +1088,121 @@ export default function ProdutosPage() {
           </motion.div>
         </div>
       )}
+      
+      {/* Modal de Confirmação de Exclusão de Produto */}
+      <AnimatePresence>
+        {showDeleteProductConfirm && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={handleDeleteProductCancel}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="bg-white rounded-2xl md:rounded-3xl w-full max-w-md border border-primary-100 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 md:p-6 border-b border-primary-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-200 rounded-lg">
+                  <FaTrash className="text-red-600" size={20} />
+                </div>
+                <h3 className="text-lg md:text-xl font-bold text-sage-900">Confirmar Exclusão</h3>
+              </div>
+              <button
+                onClick={handleDeleteProductCancel}
+                className="p-2 text-sage-600 hover:text-sage-900 hover:bg-primary-50 rounded-lg transition-all duration-300"
+              >
+                <FaTimes size={18} />
+              </button>
+            </div>
+            <div className="p-4 md:p-6 space-y-4">
+              <p className="text-sage-700 text-sm md:text-base">
+                Tem certeza que deseja remover este produto?
+              </p>
+              <p className="text-sage-500 text-xs md:text-sm">
+                Esta ação não pode ser desfeita.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 md:gap-4 p-4 md:p-6 border-t border-primary-100">
+              <button
+                onClick={handleDeleteProductCancel}
+                className="w-full sm:w-auto px-6 py-3 text-sage-600 hover:text-sage-900 hover:bg-primary-50 rounded-xl transition-all duration-300 text-sm md:text-base"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteProductConfirm}
+                className="w-full sm:w-auto px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-red-200 flex items-center justify-center gap-2 text-sm md:text-base"
+              >
+                <FaTrash size={16} />
+                <span>Remover Produto</span>
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+
+    {/* Modal de Confirmação de Remoção de Categoria */}
+    <AnimatePresence>
+      {showDeleteCategoryConfirm && categoryToDelete && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={handleRemoveCategoryCancel}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="bg-white rounded-2xl md:rounded-3xl w-full max-w-md border border-primary-100 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 md:p-6 border-b border-primary-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-200 rounded-lg">
+                  <FaTrash className="text-red-600" size={20} />
+                </div>
+                <h3 className="text-lg md:text-xl font-bold text-sage-900">Confirmar Remoção</h3>
+              </div>
+              <button
+                onClick={handleRemoveCategoryCancel}
+                className="p-2 text-sage-600 hover:text-sage-900 hover:bg-primary-50 rounded-lg transition-all duration-300"
+              >
+                <FaTimes size={18} />
+              </button>
+            </div>
+            <div className="p-4 md:p-6 space-y-4">
+              <p className="text-sage-700 text-sm md:text-base">
+                Tem certeza que deseja remover a categoria <strong>&quot;{categoryToDelete.categoryName}&quot;</strong> deste produto?
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 md:gap-4 p-4 md:p-6 border-t border-primary-100">
+              <button
+                onClick={handleRemoveCategoryCancel}
+                className="w-full sm:w-auto px-6 py-3 text-sage-600 hover:text-sage-900 hover:bg-primary-50 rounded-xl transition-all duration-300 text-sm md:text-base"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleRemoveCategoryConfirm}
+                className="w-full sm:w-auto px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-red-200 flex items-center justify-center gap-2 text-sm md:text-base"
+              >
+                <FaTrash size={16} />
+                <span>Remover</span>
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
     </div>
   );
 }

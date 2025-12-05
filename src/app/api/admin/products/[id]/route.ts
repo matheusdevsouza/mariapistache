@@ -91,6 +91,9 @@ export async function PATCH(
       .replace(/[^a-z0-9-]/g, '');
     const nextDescription = body.description !== undefined ? body.description : current.description;
     const nextPrice = body.price !== undefined ? (body.price === null ? null : parseFloat(body.price)) : current.price;
+    const nextOriginalPrice = body.original_price !== undefined 
+      ? (body.original_price === null || body.original_price === '' ? null : parseFloat(body.original_price))
+      : current.original_price;
     const nextStock = body.stock_quantity !== undefined ? (body.stock_quantity === null ? null : parseInt(body.stock_quantity)) : current.stock_quantity;
     const nextIsActive = body.is_active !== undefined ? (body.is_active ? true : false) : current.is_active;
     const nextModelId = body.model_id !== undefined ? (body.model_id === null ? null : parseInt(body.model_id)) : current.model_id;
@@ -100,6 +103,7 @@ export async function PATCH(
         slug = ?, 
         description = ?, 
         price = ?, 
+        original_price = ?,
         stock_quantity = ?, 
         is_active = ?, 
         model_id = ?,
@@ -111,6 +115,7 @@ export async function PATCH(
       nextSlug,
       nextDescription,
       nextPrice,
+      nextOriginalPrice,
       nextStock,
       nextIsActive,
       nextModelId,

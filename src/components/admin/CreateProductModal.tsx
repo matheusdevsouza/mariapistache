@@ -629,13 +629,13 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }: Creat
             </form>
           </div>
 
-          <div className="p-6 border-t border-primary-100 bg-white">
-            <div className="flex items-center justify-end gap-3">
+          <div className="p-4 md:p-6 border-t border-primary-100 bg-white">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={handleClose}
                 disabled={saving}
-                className="px-6 py-3 bg-primary-100 hover:bg-primary-200 text-sage-700 rounded-xl font-medium transition-all duration-300 disabled:opacity-50"
+                className="w-full sm:w-auto px-4 md:px-6 py-2.5 md:py-3 bg-primary-100 hover:bg-primary-200 text-sage-700 rounded-xl font-medium transition-all duration-300 disabled:opacity-50 text-sm md:text-base"
               >
                 Cancelar
               </button>
@@ -644,16 +644,16 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }: Creat
                 disabled={saving || loading}
                 whileHover={{ scale: saving || loading ? 1 : 1.02 }}
                 whileTap={{ scale: saving || loading ? 1 : 0.98 }}
-                className="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 shadow-lg shadow-primary-100/50 flex items-center gap-2"
+                className="w-full sm:w-auto px-4 md:px-6 py-2.5 md:py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 shadow-lg shadow-primary-100/50 flex items-center justify-center gap-2 text-sm md:text-base"
               >
                 {saving ? (
                   <>
-                    <FaSpinner className="animate-spin" size={16} />
+                    <FaSpinner className="animate-spin" size={14} />
                     <span>Criando Produto...</span>
                   </>
                 ) : (
                   <>
-                    <FaSave size={16} />
+                    <FaSave size={14} className="md:w-4 md:h-4" />
                     <span>Criar Produto</span>
                   </>
                 )}

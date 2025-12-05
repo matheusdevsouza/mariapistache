@@ -62,7 +62,7 @@ export async function GET(
       paramsArray.push(searchPattern, searchPattern);
     }
 
-    query += ` ORDER BY c.sort_order ASC, c.name ASC LIMIT 50`;
+    query += ` ORDER BY c.sort_order ASC, c.name ASC`;
 
     const categories = await database.query(query, paramsArray);
 

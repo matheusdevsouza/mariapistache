@@ -48,6 +48,8 @@ export default function MediaManager({ productId, onMediaUpdate }: MediaManagerP
   const [uploadType, setUploadType] = useState<'image' | 'video'>('image');
   const [altText, setAltText] = useState('');
   const [isPrimary, setIsPrimary] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [mediaToDelete, setMediaToDelete] = useState<{ id: number; type: 'image' | 'video' } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRefs = useRef<{ [key: number]: HTMLVideoElement | null }>({});
   const fetchMedia = useCallback(async () => {
@@ -125,24 +127,40 @@ export default function MediaManager({ productId, onMediaUpdate }: MediaManagerP
       setUploadProgress(0);
     }
   };
-  const handleDelete = async (mediaId: number, type: 'image' | 'video') => {
-    if (!confirm('Tem certeza que deseja remover este arquivo?')) return;
+  const handleDeleteClick = (mediaId: number, type: 'image' | 'video') => {
+    setMediaToDelete({ id: mediaId, type });
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!mediaToDelete) return;
     try {
       const response = await fetch(
-        `/api/admin/products/${productId}/media?mediaId=${mediaId}&type=${type}`,
+        `/api/admin/products/${productId}/media?mediaId=${mediaToDelete.id}&type=${mediaToDelete.type}`,
         { method: 'DELETE' }
       );
       const result = await response.json();
       if (result.success) {
         setSuccess('Arquivo removido com sucesso!');
+        setShowDeleteConfirm(false);
+        setMediaToDelete(null);
         await fetchMedia();
         onMediaUpdate?.();
       } else {
         setError(result.error || 'Erro ao remover arquivo');
+        setShowDeleteConfirm(false);
+        setMediaToDelete(null);
       }
     } catch (error) {
       setError('Erro ao conectar com o servidor');
+      setShowDeleteConfirm(false);
+      setMediaToDelete(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false);
+    setMediaToDelete(null);
   };
   const handleTogglePrimary = async (mediaId: number, type: 'image' | 'video') => {
     try {
@@ -230,16 +248,14 @@ export default function MediaManager({ productId, onMediaUpdate }: MediaManagerP
           </div>
         )}
         <div className="absolute top-2 left-2 right-2 sm:top-3 sm:left-3 sm:right-3 flex items-start justify-between gap-2 pointer-events-none z-10">
-          <div className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 sm:gap-2 bg-white/95 backdrop-blur-sm pointer-events-auto shadow-md ${
+          <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center bg-white/95 backdrop-blur-sm pointer-events-auto shadow-md ${
             item.type === 'image' ? 'text-blue-600' : 'text-red-600'
           }`}>
-            {item.type === 'image' ? <FaImage size={11} className="sm:w-3.5 sm:h-3.5" /> : <FaVideo size={11} className="sm:w-3.5 sm:h-3.5" />}
-            <span className="font-medium whitespace-nowrap">{item.type === 'image' ? 'Imagem' : 'Vídeo'}</span>
+            {item.type === 'image' ? <FaImage size={14} className="sm:w-4 sm:h-4" /> : <FaVideo size={14} className="sm:w-4 sm:h-4" />}
           </div>
           {item.isPrimary && (
-            <div className="bg-primary-500 text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 sm:gap-2 shadow-md backdrop-blur-sm pointer-events-auto whitespace-nowrap">
-              <FaStar size={11} className="sm:w-3.5 sm:h-3.5" />
-              <span className="font-medium">Principal</span>
+            <div className="bg-primary-500 text-white w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm pointer-events-auto">
+              <FaStar size={14} className="sm:w-4 sm:h-4" />
             </div>
           )}
         </div>
@@ -265,7 +281,7 @@ export default function MediaManager({ productId, onMediaUpdate }: MediaManagerP
               </button>
             )}
             <button
-              onClick={() => handleDelete(item.id, item.type)}
+              onClick={() => handleDeleteClick(item.id, item.type)}
               className="bg-red-500/90 hover:bg-red-600 backdrop-blur-sm text-white rounded-full transition-all duration-200 hover:scale-110 touch-manipulation flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shadow-md"
               title="Remover"
             >
@@ -511,7 +527,10 @@ export default function MediaManager({ productId, onMediaUpdate }: MediaManagerP
               </div>
             </div>
           </div>
-          <div className="border-2 border-dashed border-primary-200 rounded-xl p-4 text-center hover:border-primary-400 transition-all duration-300 bg-primary-50 sm:hidden">
+          <div 
+            onClick={() => !uploading && fileInputRef.current?.click()}
+            className="border-2 border-dashed border-primary-200 rounded-xl p-4 text-center hover:border-primary-400 active:border-primary-500 transition-all duration-300 bg-primary-50 sm:hidden cursor-pointer touch-manipulation"
+          >
             <input
               ref={fileInputRef}
               type="file"
@@ -529,6 +548,9 @@ export default function MediaManager({ productId, onMediaUpdate }: MediaManagerP
                 )}
               </div>
               <div className="text-sage-600 text-xs text-center">
+                <p className="mb-1 font-medium">
+                  {uploading ? 'Enviando...' : 'Toque para selecionar arquivos'}
+                </p>
                 <p className="mb-1">
                   {uploadType === 'image' 
                     ? 'Formatos: JPG, PNG, WebP, AVIF'
@@ -622,7 +644,67 @@ export default function MediaManager({ productId, onMediaUpdate }: MediaManagerP
         </div>
       )}
       <PreviewModal />
-      <div className="fixed bottom-4 right-4 sm:hidden z-50">
+      
+      {/* Modal de Confirmação de Exclusão */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+            onClick={handleDeleteCancel}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl md:rounded-3xl w-full max-w-md border border-primary-100 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-4 md:p-6 border-b border-primary-100">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-red-200 rounded-lg">
+                    <FaTrash className="text-red-600" size={20} />
+                  </div>
+                  <h3 className="text-lg md:text-xl font-bold text-sage-900">Confirmar Exclusão</h3>
+                </div>
+                <button
+                  onClick={handleDeleteCancel}
+                  className="p-2 text-sage-600 hover:text-sage-900 hover:bg-primary-50 rounded-lg transition-all duration-300"
+                >
+                  <FaTimes size={18} />
+                </button>
+              </div>
+              <div className="p-4 md:p-6 space-y-4">
+                <p className="text-sage-700 text-sm md:text-base">
+                  Tem certeza que deseja remover este {mediaToDelete?.type === 'image' ? 'arquivo de imagem' : 'vídeo'}?
+                </p>
+                <p className="text-sage-500 text-xs md:text-sm">
+                  Esta ação não pode ser desfeita.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 md:gap-4 p-4 md:p-6 border-t border-primary-100">
+                <button
+                  onClick={handleDeleteCancel}
+                  className="w-full sm:w-auto px-6 py-3 text-sage-600 hover:text-sage-900 hover:bg-primary-50 rounded-xl transition-all duration-300 text-sm md:text-base"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="w-full sm:w-auto px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-red-200 flex items-center justify-center gap-2 text-sm md:text-base"
+                >
+                  <FaTrash size={16} />
+                  <span>Remover</span>
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      <div className="fixed bottom-6 left-6 sm:hidden z-50">
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}

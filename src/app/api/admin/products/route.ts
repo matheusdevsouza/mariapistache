@@ -289,6 +289,26 @@ export async function POST(request: NextRequest) {
     ];
     const result = await database.query(insertQuery, productData);
     const productId = result.insertId;
+    
+    if (category_id && !Number.isNaN(category_id)) {
+      try {
+        const existingCategory = await database.query(
+          'SELECT id FROM product_categories WHERE product_id = ? AND category_id = ?',
+          [productId, category_id]
+        );
+        
+        if (existingCategory.length === 0) {
+          await database.query(
+            `INSERT INTO product_categories (product_id, category_id, created_at, updated_at)
+             VALUES (?, ?, NOW(), NOW())`,
+            [productId, category_id]
+          );
+        }
+      } catch (categoryError) {
+        console.error('Erro ao associar categoria ao produto:', categoryError);
+      }
+    }
+    
     return NextResponse.json({
       success: true,
       message: 'Produto criado com sucesso',

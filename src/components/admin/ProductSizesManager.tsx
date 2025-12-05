@@ -31,6 +31,8 @@ export default function ProductSizesManager({ productId, productName }: ProductS
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [sizeToDelete, setSizeToDelete] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingSize, setEditingSize] = useState<string | null>(null);
   const [newSize, setNewSize] = useState('');
@@ -86,6 +88,7 @@ export default function ProductSizesManager({ productId, productName }: ProductS
         setNewSize('');
         setNewStock(0);
         setShowAddForm(false);
+        setError(null);
         await fetchSizes();
         setTimeout(() => setSuccess(null), 3000);
       } else {
@@ -176,29 +179,43 @@ export default function ProductSizesManager({ productId, productName }: ProductS
     setEditingSize(null);
     setError(null);
   };
-  const handleRemoveSize = async (size: string) => {
-    if (!confirm(`Tem certeza que deseja remover o tamanho ${size}?`)) {
-      return;
-    }
+  const handleRemoveSizeClick = (size: string) => {
+    setSizeToDelete(size);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleRemoveSizeConfirm = async () => {
+    if (!sizeToDelete) return;
     try {
       setSaving(true);
       setError(null);
-      const response = await fetch(`/api/admin/products/${productId}/sizes?size=${encodeURIComponent(size)}`, {
+      const response = await fetch(`/api/admin/products/${productId}/sizes?size=${encodeURIComponent(sizeToDelete)}`, {
         method: 'DELETE'
       });
       const data = await response.json();
       if (data.success) {
         setSuccess('Tamanho removido com sucesso!');
+        setShowDeleteConfirm(false);
+        setSizeToDelete(null);
         await fetchSizes();
         setTimeout(() => setSuccess(null), 3000);
       } else {
         setError(data.error || 'Erro ao remover tamanho');
+        setShowDeleteConfirm(false);
+        setSizeToDelete(null);
       }
     } catch (err: any) {
       setError('Erro de conexão: ' + err.message);
+      setShowDeleteConfirm(false);
+      setSizeToDelete(null);
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleRemoveSizeCancel = () => {
+    setShowDeleteConfirm(false);
+    setSizeToDelete(null);
   };
   const totalStock = sizes.reduce((sum, size) => sum + size.stock_quantity, 0);
   useEffect(() => {
@@ -217,24 +234,24 @@ export default function ProductSizesManager({ productId, productName }: ProductS
     );
   }
   return (
-    <div className="bg-white border border-primary-100 rounded-xl p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="bg-white border border-primary-100 rounded-xl p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary-200 rounded-lg">
+          <div className="p-2 bg-primary-200 rounded-lg flex-shrink-0">
             <FaRuler className="text-primary-600" size={20} />
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-sage-900">Gerenciar Tamanhos</h3>
-            <p className="text-sm text-sage-600">{productName}</p>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-lg md:text-xl font-semibold text-sage-900">Gerenciar Tamanhos</h3>
+            <p className="text-sm text-sage-600 truncate">{productName}</p>
           </div>
         </div>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
           disabled={saving}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg disabled:opacity-60 transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg disabled:opacity-60 transition-colors text-sm font-medium shadow-md hover:shadow-lg"
         >
-          <FaPlus size={14} />
-          Adicionar Tamanho
+          <FaPlus size={16} />
+          <span>Adicionar Tamanho</span>
         </button>
       </div>
       <AnimatePresence>
@@ -243,10 +260,10 @@ export default function ProductSizesManager({ productId, productName }: ProductS
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="bg-red-200 border border-red-300 text-red-700 p-4 rounded-lg flex items-center gap-2"
+            className="bg-red-200 border border-red-300 text-red-700 p-3 md:p-4 rounded-lg flex items-start md:items-center gap-2 text-sm md:text-base"
           >
-            <FaExclamationTriangle />
-            {error}
+            <FaExclamationTriangle className="flex-shrink-0 mt-0.5 md:mt-0" size={16} />
+            <span className="break-words">{error}</span>
           </motion.div>
         )}
         {success && (
@@ -254,70 +271,57 @@ export default function ProductSizesManager({ productId, productName }: ProductS
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="bg-green-200 border border-green-300 text-green-700 p-4 rounded-lg flex items-center gap-2"
+            className="bg-green-200 border border-green-300 text-green-700 p-3 md:p-4 rounded-lg flex items-start md:items-center gap-2 text-sm md:text-base"
           >
-            <FaCheck />
-            {success}
+            <FaCheck className="flex-shrink-0 mt-0.5 md:mt-0" size={16} />
+            <span className="break-words">{success}</span>
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-primary-50 border border-primary-100 rounded-lg p-4">
-          <div className="text-2xl font-bold text-sage-900">{sizes.length}</div>
-          <div className="text-sm text-sage-600">Tamanhos Cadastrados</div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+        <div className="bg-primary-50 border border-primary-100 rounded-lg p-4 md:p-5">
+          <div className="text-2xl md:text-3xl font-bold text-sage-900 mb-1">{sizes.length}</div>
+          <div className="text-xs md:text-sm text-sage-600">Tamanhos Cadastrados</div>
         </div>
-        <div className="bg-primary-50 border border-primary-100 rounded-lg p-4">
-          <div className="text-2xl font-bold text-sage-900">{totalStock}</div>
-          <div className="text-sm text-sage-600">Estoque Total</div>
+        <div className="bg-primary-50 border border-primary-100 rounded-lg p-4 md:p-5">
+          <div className="text-2xl md:text-3xl font-bold text-sage-900 mb-1">{totalStock}</div>
+          <div className="text-xs md:text-sm text-sage-600">Estoque Total</div>
         </div>
-        <div className="bg-primary-50 border border-primary-100 rounded-lg p-4">
-          <div className="text-2xl font-bold text-sage-900">
+        <div className="bg-primary-50 border border-primary-100 rounded-lg p-4 md:p-5">
+          <div className="text-2xl md:text-3xl font-bold text-sage-900 mb-1">
             {sizes.filter(s => s.stock_quantity > 0).length}
           </div>
-          <div className="text-sm text-sage-600">Tamanhos com Estoque</div>
+          <div className="text-xs md:text-sm text-sage-600">Tamanhos com Estoque</div>
         </div>
       </div>
       <AnimatePresence>
         {showAddForm && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-primary-50 border border-primary-100 rounded-lg p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+            onClick={() => {
+              setShowAddForm(false);
+              setNewSize('');
+              setNewStock(0);
+              setError(null);
+            }}
           >
-            <h4 className="text-sage-900 font-medium mb-4">Adicionar Novo Tamanho</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm text-sage-700 mb-1">Tamanho</label>
-                <input
-                  type="text"
-                  value={newSize}
-                  onChange={(e) => setNewSize(e.target.value)}
-                  className="w-full bg-white border border-primary-100 rounded-lg px-3 py-2 text-sage-900 focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
-                  placeholder="Ex: 38, 39, 40, P, M, G..."
-                  maxLength={10}
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-sage-700 mb-1">Estoque</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={newStock}
-                  onChange={(e) => setNewStock(parseInt(e.target.value) || 0)}
-                  className="w-full bg-white border border-primary-100 rounded-lg px-3 py-2 text-sage-900 focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
-                  placeholder="0"
-                />
-              </div>
-              <div className="flex items-end gap-2">
-                <button
-                  onClick={handleAddSize}
-                  disabled={saving || !newSize.trim()}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-60 flex items-center gap-2"
-                >
-                  {saving ? <FaSpinner className="animate-spin" size={14} /> : <FaSave size={14} />}
-                  Adicionar
-                </button>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl md:rounded-3xl w-full max-w-md border border-primary-100 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-4 md:p-6 border-b border-primary-100">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <div className="p-2 bg-primary-200 rounded-lg flex-shrink-0">
+                    <FaPlus className="text-primary-600" size={18} />
+                  </div>
+                  <h3 className="text-base md:text-xl font-bold text-sage-900">Adicionar Novo Tamanho</h3>
+                </div>
                 <button
                   onClick={() => {
                     setShowAddForm(false);
@@ -325,40 +329,117 @@ export default function ProductSizesManager({ productId, productName }: ProductS
                     setNewStock(0);
                     setError(null);
                   }}
-                  className="px-4 py-2 bg-sage-300 hover:bg-sage-400 text-white rounded-lg flex items-center gap-2"
+                  disabled={saving}
+                  className="p-2 text-sage-600 hover:text-sage-900 hover:bg-primary-50 rounded-lg transition-all duration-300 disabled:opacity-50 flex-shrink-0"
                 >
-                  <FaTimes size={14} />
-                  Cancelar
+                  <FaTimes size={18} />
                 </button>
               </div>
-            </div>
+              <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-red-200 border border-red-300 text-red-700 p-3 rounded-lg flex items-start gap-2 text-sm"
+                  >
+                    <FaExclamationTriangle className="flex-shrink-0 mt-0.5" size={16} />
+                    <span className="break-words">{error}</span>
+                  </motion.div>
+                )}
+                <div>
+                  <label className="block text-sm font-medium text-sage-700 mb-3">
+                    Tamanho *
+                  </label>
+                  <input
+                    type="text"
+                    value={newSize}
+                    onChange={(e) => {
+                      setNewSize(e.target.value);
+                      setError(null);
+                    }}
+                    className="w-full bg-primary-50 border border-primary-100 rounded-xl px-4 py-3 text-sage-900 placeholder-sage-500 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 focus:bg-white transition-all duration-300"
+                    placeholder="Ex: 38, 39, 40, P, M, G..."
+                    maxLength={10}
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-sage-700 mb-3">
+                    Quantidade em Estoque *
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={newStock}
+                    onChange={(e) => {
+                      setNewStock(parseInt(e.target.value) || 0);
+                      setError(null);
+                    }}
+                    className="w-full bg-primary-50 border border-primary-100 rounded-xl px-4 py-3 text-sage-900 placeholder-sage-500 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 focus:bg-white transition-all duration-300"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 md:gap-4 p-4 md:p-6 border-t border-primary-100">
+                <button
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setNewSize('');
+                    setNewStock(0);
+                    setError(null);
+                  }}
+                  disabled={saving}
+                  className="w-full sm:w-auto px-6 py-3 text-sage-600 hover:text-sage-900 hover:bg-primary-50 rounded-xl transition-all duration-300 disabled:opacity-50 text-sm md:text-base"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleAddSize}
+                  disabled={saving || !newSize.trim()}
+                  className="w-full sm:w-auto px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-primary-200 disabled:opacity-50 flex items-center justify-center gap-2 text-sm md:text-base"
+                >
+                  {saving ? (
+                    <>
+                      <FaSpinner className="animate-spin" size={16} />
+                      <span>Adicionando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaSave size={16} />
+                      <span>Adicionar Tamanho</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+      
       {sizes.length === 0 ? (
-        <div className="text-center py-8 text-sage-600">
-          <FaRuler size={48} className="mx-auto mb-3 opacity-50" />
-          <p>Nenhum tamanho cadastrado para este produto</p>
-          <p className="text-sm mt-1">Clique em &quot;Adicionar Tamanho&quot; para começar</p>
+        <div className="text-center py-8 md:py-12 text-sage-600">
+          <FaRuler size={48} className="mx-auto mb-4 opacity-50" />
+          <p className="text-sm md:text-base font-medium mb-1">Nenhum tamanho cadastrado para este produto</p>
+          <p className="text-xs md:text-sm">Clique em &quot;Adicionar Tamanho&quot; para começar</p>
         </div>
       ) : (
         <div className="space-y-3">
-          <h4 className="text-sage-900 font-medium">Tamanhos Cadastrados</h4>
+          <h4 className="text-sage-900 font-medium text-sm md:text-base">Tamanhos Cadastrados</h4>
           <div className="grid gap-3">
             {sizes.map((size) => (
               <motion.div
                 key={size.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-primary-50 border border-primary-100 rounded-lg p-4"
+                className="bg-primary-50 border border-primary-100 rounded-lg p-3 md:p-4"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-primary-500 text-white px-4 py-2 rounded-full font-bold text-lg min-w-[3rem] text-center">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+                    <div className="bg-primary-500 text-white px-3 md:px-4 py-2 rounded-full font-bold text-base md:text-lg min-w-[2.5rem] md:min-w-[3rem] text-center flex-shrink-0">
                       {size.size}
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div>
+                    <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+                      <div className="flex-shrink-0">
                         <label className="block text-xs text-sage-600 mb-1">Estoque</label>
                         {editingSize === size.size ? (
                           <div className="flex items-center gap-2">
@@ -382,7 +463,7 @@ export default function ProductSizesManager({ productId, productName }: ProductS
                                 }
                                 setEditingSize(null);
                               }}
-                              className="w-20 bg-white border border-primary-200 rounded px-2 py-1 text-sage-900 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+                              className="w-16 md:w-20 bg-white border border-primary-200 rounded px-2 py-1 text-sage-900 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
                               autoFocus
                             />
                           </div>
@@ -391,11 +472,11 @@ export default function ProductSizesManager({ productId, productName }: ProductS
                             onClick={() => setEditingSize(size.size)}
                             className="text-sage-900 hover:text-primary-600 transition-colors"
                           >
-                            <span className="font-semibold">{size.stock_quantity}</span>
+                            <span className="font-semibold text-sm md:text-base">{size.stock_quantity}</span>
                           </button>
                         )}
                       </div>
-                      <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                      <div className={`px-2 md:px-2.5 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
                         (size.is_active && size.stock_quantity > 0)
                           ? 'bg-green-200 text-green-700'
                           : 'bg-red-200 text-red-700'
@@ -404,7 +485,7 @@ export default function ProductSizesManager({ productId, productName }: ProductS
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 justify-end md:justify-start">
                      <button
                        onClick={() => handleEditSize(size)}
                        disabled={saving}
@@ -414,7 +495,7 @@ export default function ProductSizesManager({ productId, productName }: ProductS
                        <FaEdit size={14} />
                      </button>
                     <button
-                      onClick={() => handleRemoveSize(size.size)}
+                      onClick={() => handleRemoveSizeClick(size.size)}
                       disabled={saving}
                       className="p-2 text-red-600 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
                       title="Remover tamanho"
@@ -441,25 +522,25 @@ export default function ProductSizesManager({ productId, productName }: ProductS
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-3xl w-full max-w-md border border-primary-100 shadow-2xl"
+              className="bg-white rounded-2xl md:rounded-3xl w-full max-w-md border border-primary-100 shadow-2xl max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between p-6 border-b border-primary-100">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary-200 rounded-lg">
-                    <FaEdit className="text-primary-600" size={20} />
+              <div className="flex items-center justify-between p-4 md:p-6 border-b border-primary-100 sticky top-0 bg-white z-10">
+                <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+                  <div className="p-2 bg-primary-200 rounded-lg flex-shrink-0">
+                    <FaEdit className="text-primary-600" size={18} />
                   </div>
-                  <h3 className="text-xl font-bold text-sage-900">Editar Tamanho {editSizeData.size}</h3>
+                  <h3 className="text-base md:text-xl font-bold text-sage-900 truncate">Editar Tamanho {editSizeData.size}</h3>
                 </div>
                 <button
                   onClick={handleCancelEdit}
                   disabled={saving}
-                  className="p-2 text-sage-600 hover:text-sage-900 hover:bg-primary-50 rounded-lg transition-all duration-300 disabled:opacity-50"
+                  className="p-2 text-sage-600 hover:text-sage-900 hover:bg-primary-50 rounded-lg transition-all duration-300 disabled:opacity-50 flex-shrink-0"
                 >
-                  <FaTimes size={20} />
+                  <FaTimes size={18} />
                 </button>
               </div>
-              <div className="p-6 space-y-6">
+              <div className="p-4 md:p-6 space-y-4 md:space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-sage-700 mb-3">
                     Tamanho
@@ -524,28 +605,98 @@ export default function ProductSizesManager({ productId, productName }: ProductS
                   </div>
                 </div>
               </div>
-              <div className="flex items-center justify-end gap-4 p-6 border-t border-primary-100">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 md:gap-4 p-4 md:p-6 border-t border-primary-100 sticky bottom-0 bg-white">
                 <button
                   onClick={handleCancelEdit}
                   disabled={saving}
-                  className="px-6 py-3 text-sage-600 hover:text-sage-900 hover:bg-primary-50 rounded-xl transition-all duration-300 disabled:opacity-50"
+                  className="w-full sm:w-auto px-6 py-3 text-sage-600 hover:text-sage-900 hover:bg-primary-50 rounded-xl transition-all duration-300 disabled:opacity-50 text-sm md:text-base"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSaveEdit}
                   disabled={saving}
-                  className="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-primary-200 disabled:opacity-50 flex items-center gap-2"
+                  className="w-full sm:w-auto px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-primary-200 disabled:opacity-50 flex items-center justify-center gap-2 text-sm md:text-base"
                 >
                   {saving ? (
                     <>
                       <FaSpinner className="animate-spin" size={16} />
-                      Salvando...
+                      <span>Salvando...</span>
                     </>
                   ) : (
                     <>
                       <FaSave size={16} />
-                      Salvar Alterações
+                      <span>Salvar Alterações</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Modal de Confirmação de Exclusão */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+            onClick={handleRemoveSizeCancel}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl md:rounded-3xl w-full max-w-md border border-primary-100 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-4 md:p-6 border-b border-primary-100">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-red-200 rounded-lg">
+                    <FaTrash className="text-red-600" size={20} />
+                  </div>
+                  <h3 className="text-lg md:text-xl font-bold text-sage-900">Confirmar Exclusão</h3>
+                </div>
+                <button
+                  onClick={handleRemoveSizeCancel}
+                  className="p-2 text-sage-600 hover:text-sage-900 hover:bg-primary-50 rounded-lg transition-all duration-300"
+                >
+                  <FaTimes size={18} />
+                </button>
+              </div>
+              <div className="p-4 md:p-6 space-y-4">
+                <p className="text-sage-700 text-sm md:text-base">
+                  Tem certeza que deseja remover o tamanho <strong>{sizeToDelete}</strong>?
+                </p>
+                <p className="text-sage-500 text-xs md:text-sm">
+                  Esta ação não pode ser desfeita.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 md:gap-4 p-4 md:p-6 border-t border-primary-100">
+                <button
+                  onClick={handleRemoveSizeCancel}
+                  disabled={saving}
+                  className="w-full sm:w-auto px-6 py-3 text-sage-600 hover:text-sage-900 hover:bg-primary-50 rounded-xl transition-all duration-300 disabled:opacity-50 text-sm md:text-base"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleRemoveSizeConfirm}
+                  disabled={saving}
+                  className="w-full sm:w-auto px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-red-200 disabled:opacity-50 flex items-center justify-center gap-2 text-sm md:text-base"
+                >
+                  {saving ? (
+                    <>
+                      <FaSpinner className="animate-spin" size={16} />
+                      <span>Removendo...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaTrash size={16} />
+                      <span>Remover Tamanho</span>
                     </>
                   )}
                 </button>
