@@ -23,7 +23,7 @@ const CategoriesSkeleton = () => (
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 max-w-7xl mx-auto">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="relative h-[400px] md:h-[450px] rounded-2xl overflow-hidden border border-white/10">
+          <div key={i} className="relative h-[400px] md:h-[450px] rounded-2xl overflow-hidden">
             <div className="absolute inset-0 animate-pulse bg-white/5" />
             <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8">
               <div className="h-8 w-3/4 bg-white/10 rounded mb-2 animate-pulse" />
@@ -65,6 +65,14 @@ const defaultCategories = [
 ]
 
 function CategoryCard({ category, index, defaultImage }: { category: Category & { image?: string }, index: number, defaultImage: string }) {
+  // Ajusta o posicionamento da imagem baseado na categoria
+  const getObjectPosition = () => {
+    if (category.slug === 'noite-festa') {
+      return 'center top' // Foca no topo para mostrar a cabeça completa
+    }
+    return 'center 5%' // Posicionamento padrão para outras categorias
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -82,14 +90,13 @@ function CategoryCard({ category, index, defaultImage }: { category: Category & 
           <div className="absolute inset-0 overflow-hidden">
             <div 
               className="absolute inset-0 category-card-image-wrapper"
-              style={{ transform: 'scale(0.95)' }}
             >
               <Image
                 src={(category as any).image || defaultImage}
                 alt={category.name}
                 fill
                 className="object-cover"
-                style={{ objectPosition: 'center 5%' }}
+                style={{ objectPosition: getObjectPosition() }}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 priority={index === 0}
               />
