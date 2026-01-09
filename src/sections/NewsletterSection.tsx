@@ -2,11 +2,18 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEnvelope } from '@fortawesome/free-solid-svg-icons'
-import { ArrowRight } from 'phosphor-react'
+import {
+  faEnvelope,
+  faArrowRight,
+  faClock
+} from '@fortawesome/free-solid-svg-icons'
+import {
+  faWhatsapp
+} from '@fortawesome/free-brands-svg-icons'
+import { faEnvelope as faEnvelopeRegular } from '@fortawesome/free-regular-svg-icons'
 
 const ContactSkeleton = () => (
-  <section className="py-24 md:py-32 bg-sand-100 relative overflow-hidden">
+  <section className="pt-32 md:pt-40 pb-24 md:pb-32 bg-sand-100 relative overflow-hidden">
     <div className="container mx-auto px-4 sm:px-6 relative z-10">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16 md:mb-20 space-y-6">
@@ -20,18 +27,39 @@ const ContactSkeleton = () => (
   </section>
 )
 
+const contactChannels = [
+  {
+    icon: faWhatsapp,
+    title: 'WhatsApp',
+    description: 'Resposta rápida',
+    info: '+55 11 97483-5035',
+    href: 'https://wa.me/5511974835035?text=Olá! Gostaria de saber mais sobre os produtos da Maria Pistache.',
+    color: 'bg-green-500',
+    hoverColor: 'hover:bg-green-600'
+  },
+  {
+    icon: faEnvelopeRegular,
+    title: 'E-mail',
+    description: 'Resposta em até 24h',
+    info: 'contato@mariapistache.com.br',
+    href: 'mailto:contato@mariapistache.com.br',
+    color: 'bg-primary-500',
+    hoverColor: 'hover:bg-primary-600'
+  }
+]
+
 export function ContactSection() {
 
   return (
-    <section className="py-24 md:py-32 bg-sand-100 relative overflow-hidden">
-      <div className="custom-shape-divider-top absolute top-0 left-0 w-full overflow-hidden leading-none pointer-events-none" style={{ 
+    <section className="pt-32 md:pt-40 pb-24 md:pb-32 bg-sand-100 relative overflow-hidden">
+      <div className="custom-shape-divider-top absolute top-0 left-0 w-full overflow-hidden leading-none pointer-events-none" style={{
         zIndex: 1,
+        backgroundColor: '#0a1f13',
         backgroundImage: `
-          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
+          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
         `,
-        backgroundSize: '40px 40px',
-        backgroundColor: '#0d0d0d'
+        backgroundSize: '40px 40px'
       }}>
         <svg
           data-name="Layer 1"
@@ -47,14 +75,15 @@ export function ContactSection() {
           />
         </svg>
       </div>
+
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ 
+          transition={{
             duration: 0.8,
-            ease: [0.25, 0.46, 0.45, 0.94],
+            ease: [0.16, 1, 0.3, 1],
           }}
           className="max-w-5xl mx-auto"
         >
@@ -64,16 +93,17 @@ export function ContactSection() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="inline-flex items-center gap-2 mb-6 px-4 py-2 border border-primary-700 rounded-full"
+              className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 border border-sage-300/50 rounded-full bg-sage-100/50"
             >
-              <FontAwesomeIcon 
-                icon={faEnvelope} 
-                className="text-primary-600 text-sm" 
+              <FontAwesomeIcon
+                icon={faEnvelope}
+                className="text-sage-400 text-sm w-4 h-4"
               />
-              <span className="text-xs uppercase tracking-[0.25em] text-primary-700 font-semibold">
+              <span className="text-xs uppercase tracking-[0.2em] text-sage-500 font-medium">
                 Entre em Contato
               </span>
             </motion.div>
+
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -88,11 +118,11 @@ export function ContactSection() {
                 </span>
                 <motion.div
                   initial={{ width: 0 }}
-                  whileInView={{ 
+                  whileInView={{
                     width: ['0%', '100%', '100%', '0%', '0%']
                   }}
                   viewport={{ once: false }}
-                  transition={{ 
+                  transition={{
                     duration: 12,
                     delay: 0.8,
                     repeat: Infinity,
@@ -105,6 +135,7 @@ export function ContactSection() {
                 />
               </span>
             </motion.h2>
+
             <motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
@@ -120,32 +151,75 @@ export function ContactSection() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto mb-12"
+          >
+            {contactChannels.map((channel, index) => (
+              <motion.a
+                key={channel.title}
+                href={channel.href}
+                target={channel.title === 'WhatsApp' ? '_blank' : undefined}
+                rel={channel.title === 'WhatsApp' ? 'noopener noreferrer' : undefined}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.7 + index * 0.1 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="group bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-sage-200/60 shadow-sm hover:shadow-xl hover:border-primary-200 transition-all duration-300 ease-out"
+              >
+                <div className={`w-12 h-12 ${channel.color} ${channel.hoverColor} rounded-xl flex items-center justify-center mb-4 transition-colors duration-300`}>
+                  <FontAwesomeIcon icon={channel.icon} className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-sage-900 mb-1 group-hover:text-primary-600 transition-colors duration-300">
+                  {channel.title}
+                </h3>
+                <p className="text-sm text-sage-600 mb-2">
+                  {channel.description}
+                </p>
+                <p className="text-sm font-medium text-primary-600">
+                  {channel.info}
+                </p>
+              </motion.a>
+            ))}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.9 }}
+            className="flex flex-wrap justify-center gap-6 mb-12"
+          >
+            <div className="flex items-center gap-3 px-5 py-3 bg-white/60 rounded-full border border-sage-200/50">
+              <FontAwesomeIcon icon={faClock} className="w-4 h-4 text-sage-400" />
+              <span className="text-sm text-sage-600 font-medium">Resposta média: 2 horas</span>
+            </div>
+            <div className="flex items-center gap-3 px-5 py-3 bg-white/60 rounded-full border border-sage-200/50">
+              <span className="text-sm text-sage-600 font-medium">Atendimento: Seg-Sex, 9h às 18h</span>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 1 }}
-            className="text-center mt-12 md:mt-16"
+            className="text-center"
           >
             <Link href="/contato">
               <motion.button
-                whileHover={{ 
-                  scale: 1.02, 
-                  y: -1,
-                }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ 
-                  duration: 0.35, 
-                  ease: [0.25, 0.46, 0.45, 0.94] 
-                }}
-                className="group relative inline-flex items-center gap-3 px-8 py-4 bg-primary-500 text-sand-100 rounded-xl font-semibold text-sm uppercase tracking-[0.2em] shadow-lg shadow-primary-500/25 overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="group relative inline-flex items-center gap-3 px-8 py-4 bg-primary-500 text-sand-100 rounded-xl font-semibold text-sm uppercase tracking-[0.2em] shadow-lg shadow-primary-500/25 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/30 hover:bg-primary-600"
               >
-                <span 
-                  className="relative z-10 transition-transform duration-300 group-hover:translate-x-0.5"
-                >
-                  ENTRAR EM CONTATO
+                <span className="relative z-10">
+                  MAIS OPÇÕES DE CONTATO
                 </span>
-                <div
-                  className="relative z-10 transition-transform duration-300 group-hover:translate-x-1"
-                >
-                  <ArrowRight size={18} weight="thin" />
-                </div>
+                <FontAwesomeIcon
+                  icon={faArrowRight}
+                  className="w-4 h-4 relative z-10 transition-transform duration-300 group-hover:translate-x-1"
+                />
               </motion.button>
             </Link>
           </motion.div>
@@ -154,4 +228,5 @@ export function ContactSection() {
     </section>
   )
 }
+
 export const NewsletterSection = ContactSection

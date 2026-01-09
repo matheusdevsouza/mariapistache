@@ -1,18 +1,18 @@
 import { Pool, QueryResult } from 'pg'
 import { createHash } from 'crypto'
-import { 
-  encryptPersonalData, 
-  decryptPersonalData, 
-  encryptOrderData, 
+import {
+  encryptPersonalData,
+  decryptPersonalData,
+  encryptOrderData,
   decryptOrderData,
   hashUserId,
   verifyUserIdHash,
   searchUserByEmail,
   ENCRYPTION_ENABLED
 } from './encryption'
-import { 
-  encryptForDatabase, 
-  decryptFromDatabase, 
+import {
+  encryptForDatabase,
+  decryptFromDatabase,
   ENCRYPTION_FIELDS,
   encryptValue
 } from './transparent-encryption'
@@ -39,7 +39,7 @@ interface ProductFilters {
   unique?: boolean
   min_price?: number
   max_price?: number
-  color_ids?: number[] 
+  color_ids?: number[]
 }
 interface OrderData {
   user_id?: number
@@ -111,19 +111,19 @@ function getDbConfig(): DBConfig | { connectionString: string; max?: number; idl
       allowExitOnIdle: false,
     }
   }
-  
+
   const host = process.env.DB_HOST || 'localhost'
   const port = parseInt(process.env.DB_PORT || '5432')
   const user = process.env.DB_USER || 'postgres'
   const password = process.env.DB_PASSWORD || ''
   const database = process.env.DB_NAME || ''
-  
+
   if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
     if (host === 'localhost' || host === '127.0.0.1') {
       throw new Error('DATABASE_URL ou variáveis DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME devem ser configuradas no Vercel. Não é possível conectar ao localhost em produção.')
     }
   }
-  
+
   return {
     host,
     port,
@@ -140,9 +140,9 @@ let pool: Pool | null = null
 
 function initializePool() {
   if (pool) return pool;
-  
+
   const config = getDbConfig()
-  
+
   if (process.env.NODE_ENV === 'development') {
     if (!(globalThis as any)._pgPool) {
       (globalThis as any)._pgPool = new Pool(config)
@@ -160,7 +160,7 @@ function setupPoolErrorHandling(poolInstance: Pool) {
   poolInstance.on('error', (err: Error) => {
     console.error('Erro inesperado no pool de conexões do PostgreSQL:', err)
   })
-  
+
   poolInstance.on('connect', () => {
     if (process.env.NODE_ENV === 'development') {
       console.log('✅ Nova conexão estabelecida com o banco de dados')
@@ -178,12 +178,12 @@ export function getPool(): Pool {
 function convertQueryToPg(sql: string): string {
   let i = 1;
   let converted = sql.replace(/\?/g, () => `$${i++}`);
-  
+
   if (converted.trim().toUpperCase().startsWith('INSERT') && !converted.toUpperCase().includes('RETURNING')) {
     converted = converted.replace(/;\s*$/, '');
     converted += ' RETURNING id';
   }
-  
+
   return converted;
 }
 
@@ -194,43 +194,43 @@ async function query(sql: string, params: any[] = [], retries: number = 2): Prom
     }
     const pool = getPool()
     const pgSql = convertQueryToPg(sql);
-    
+
     const normalizedParams = params.map((param) => {
       if (param === undefined || param === '' || (typeof param === 'string' && param.trim() === '')) {
         return null;
       }
       return param;
     });
-    
+
     const result = await pool.query(pgSql, normalizedParams)
-    
+
     if (sql.trim().toUpperCase().startsWith('SELECT')) {
       return result.rows
     }
-    
+
     return {
       insertId: result.rows.length > 0 && result.rows[0].id ? result.rows[0].id : 0,
       affectedRows: result.rowCount,
       rows: result.rows
     }
   } catch (error: any) {
-    const isConnectionError = 
+    const isConnectionError =
       error.message?.includes('Connection terminated') ||
       error.message?.includes('connection timeout') ||
       error.message?.includes('Connection terminated unexpectedly') ||
       error.code === 'ECONNRESET' ||
       error.code === 'ETIMEDOUT' ||
       error.code === 'ENOTFOUND'
-    
+
     if (isConnectionError && retries > 0) {
       console.warn(`⚠️ Erro de conexão detectado. Tentando novamente... (${retries} tentativas restantes)`)
       await new Promise(resolve => setTimeout(resolve, 1000))
       return query(sql, params, retries - 1)
     }
-    
+
     console.error('Erro na query:', error)
     console.error('SQL Original:', sql)
-    
+
     throw error
   }
 }
@@ -244,7 +244,7 @@ export async function transaction(queries: Array<{ sql: string; params: any[] }>
     for (const { sql, params } of queries) {
       const pgSql = convertQueryToPg(sql);
       const result = await client.query(pgSql, params)
-      
+
       if (sql.trim().toUpperCase().startsWith('SELECT')) {
         results.push(result.rows)
       } else {
@@ -281,7 +281,7 @@ export async function getProducts(filters: ProductFilters = {}): Promise<any[]> 
     LEFT JOIN subcategories s ON p.subcategory_id = s.id
   `
   const params: any[] = []
-  
+
   if (filters.category_slug) {
     sql += ` WHERE p.is_active = TRUE 
              AND EXISTS (
@@ -327,7 +327,7 @@ export async function getProducts(filters: ProductFilters = {}): Promise<any[]> 
     sql += ' AND (p.name LIKE ? OR p.description LIKE ? OR p.color LIKE ?)'
     params.push(`%${filters.search}%`, `%${filters.search}%`, `%${filters.search}%`)
   }
-  
+
   sql += ' ORDER BY p.id ASC'
   if (filters.limit) {
     sql += ' LIMIT ?'
@@ -473,8 +473,8 @@ export async function getProductStats(productId: number): Promise<any> {
 }
 
 export async function recordProductStat(
-  productId: number, 
-  statType: string, 
+  productId: number,
+  statType: string,
   userIdentifier?: string,
   userId?: number,
   ip?: string,
@@ -680,24 +680,24 @@ export interface CreateUserData {
   gender?: 'M' | 'F' | 'Other' | null;
 }
 async function createUser(userData: CreateUserData): Promise<any> {
-  const phone = userData.phone && typeof userData.phone === 'string' && userData.phone.trim() 
-    ? userData.phone.trim() 
+  const phone = userData.phone && typeof userData.phone === 'string' && userData.phone.trim()
+    ? userData.phone.trim()
     : null;
-  const cpf = userData.cpf && typeof userData.cpf === 'string' && userData.cpf.trim() 
-    ? userData.cpf.trim() 
+  const cpf = userData.cpf && typeof userData.cpf === 'string' && userData.cpf.trim()
+    ? userData.cpf.trim()
     : null;
-  const birthDate = userData.birth_date && typeof userData.birth_date === 'string' && userData.birth_date.trim() 
-    ? userData.birth_date.trim() 
+  const birthDate = userData.birth_date && typeof userData.birth_date === 'string' && userData.birth_date.trim()
+    ? userData.birth_date.trim()
     : null;
-  const gender = userData.gender && typeof userData.gender === 'string' && userData.gender.trim() 
-    ? userData.gender.trim() 
+  const gender = userData.gender && typeof userData.gender === 'string' && userData.gender.trim()
+    ? userData.gender.trim()
     : null;
-  
+
   const cleanPhone = (phone === '' || phone === undefined || phone === null) ? null : phone;
   const cleanCpf = (cpf === '' || cpf === undefined || cpf === null) ? null : cpf;
   const cleanBirthDate = (birthDate === '' || birthDate === undefined || birthDate === null) ? null : birthDate;
   const cleanGender = (gender === '' || gender === undefined || gender === null) ? null : gender;
-  
+
   const sql = `
     INSERT INTO users (name, email, password, phone, cpf, birth_date, gender, email_verified_at, is_active)
     VALUES (?, ?, ?, ?, ?, ?, ?, NULL, TRUE)
@@ -705,13 +705,13 @@ async function createUser(userData: CreateUserData): Promise<any> {
   const params = [
     userData.name,
     userData.email,
-    userData.password, 
+    userData.password,
     cleanPhone,
     cleanCpf,
     cleanBirthDate,
     cleanGender,
   ];
-  
+
   console.log('[CREATE_USER] Params antes da criptografia:', {
     phone: cleanPhone,
     cpf: cleanCpf,
@@ -720,7 +720,7 @@ async function createUser(userData: CreateUserData): Promise<any> {
     phoneIsNull: cleanPhone === null,
     cpfIsNull: cleanCpf === null,
   });
-  
+
   return await queryWithEncryption(sql, params, 'users');
 }
 async function getUserByEmail(email: string): Promise<any> {
@@ -751,7 +751,7 @@ export async function getUserById(id: number): Promise<any> {
       return decryptPersonalData(decrypted);
     } catch (error) {
       console.warn('Erro ao descriptografar dados do usuário:', error instanceof Error ? error.message : String(error));
-      return row; 
+      return row;
     }
   }
   return null;
@@ -766,7 +766,7 @@ export async function getUserByUuid(uuid: string): Promise<any> {
       return decryptPersonalData(decrypted);
     } catch (error) {
       console.warn('Erro ao descriptografar dados do usuário:', error instanceof Error ? error.message : String(error));
-      return row; 
+      return row;
     }
   }
   return null;
@@ -1138,7 +1138,7 @@ export async function queryWithEncryption(sql: string, params: any[] = [], table
     }
 
     const result = await query(sql, processedParams);
-    
+
     let rows = Array.isArray(result) ? result : (result.rows || []);
 
     if (isSelect && tableName && rows.length > 0) {
@@ -1157,12 +1157,12 @@ export async function queryWithEncryption(sql: string, params: any[] = [], table
 }
 
 const originalQuery = query;
-const database = { 
-  query: queryWithEncryption, 
-  transaction, 
+const database = {
+  query: queryWithEncryption,
+  transaction,
   getPool,
-  getProducts, 
-  getProductById, 
+  getProducts,
+  getProductById,
   getAvailableColors,
   getSimilarProducts,
   getCategories,

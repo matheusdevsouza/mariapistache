@@ -39,16 +39,13 @@ keys/
 
 # banco de dados
 
-*.sql
-*.sql.backup
 *.db
 *.db.backup
 *.dump
 *.bak
-database/
 database/dumps/
 database/backups/
-migrations/
+*.sql
 
 
 # dependencias

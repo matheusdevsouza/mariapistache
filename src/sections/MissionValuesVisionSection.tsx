@@ -4,11 +4,11 @@ import { useRef } from 'react'
 import { Target, Heart, Eye, Sparkle, CheckCircle } from 'phosphor-react'
 
 const MissionValuesVisionSkeleton = () => (
-  <section className="relative py-16 sm:py-24 md:py-32 overflow-hidden" style={{ 
-    backgroundColor: '#0d0d0d',
+  <section className="relative py-16 sm:py-24 md:py-32 overflow-hidden" style={{
+    backgroundColor: '#0a1f13',
     backgroundImage: `
-      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
     `,
     backgroundSize: '40px 40px'
   }}>
@@ -118,11 +118,11 @@ export function MissionValuesVisionSection() {
     <section
       ref={sectionRef}
       className="relative py-16 sm:py-24 md:py-32 overflow-hidden"
-      style={{ 
-        backgroundColor: '#0d0d0d',
+      style={{
+        backgroundColor: '#0a1f13',
         backgroundImage: `
-          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
+          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
         `,
         backgroundSize: '40px 40px'
       }}
@@ -138,9 +138,9 @@ export function MissionValuesVisionSection() {
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : { opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative z-20 inline-flex items-center gap-2 justify-center text-xs uppercase tracking-[0.25em] text-primary-400 mb-4 font-semibold px-4 py-1 rounded-full border border-primary-400/50 bg-primary-500/10"
+            className="relative z-20 inline-flex items-center gap-2 justify-center text-xs uppercase tracking-[0.2em] text-white/60 mb-4 font-medium px-4 py-1.5 rounded-full border border-white/20 bg-white/5"
           >
-            <Sparkle size={12} weight="fill" className="text-primary-400" />
+            <Sparkle size={12} weight="fill" className="text-white/50" />
             sobre a marca
           </motion.span>
           <motion.h2
@@ -156,10 +156,10 @@ export function MissionValuesVisionSection() {
               </span>
               <motion.div
                 initial={{ width: 0 }}
-                animate={isInView ? { 
+                animate={isInView ? {
                   width: ['0%', '100%', '100%', '0%', '0%']
                 } : { width: 0 }}
-                transition={{ 
+                transition={{
                   duration: 12,
                   delay: 0.8,
                   repeat: Infinity,
@@ -213,11 +213,11 @@ export function MissionValuesVisionSection() {
                         className="text-primary-400"
                       />
                     </div>
-                    
+
                     <h3 className="text-2xl md:text-3xl font-bold text-white mb-6 text-center tracking-wide uppercase" style={{ letterSpacing: '0.05em' }}>
                       {card.title}
                     </h3>
-                    
+
                     <div className="flex-1">
                       {card.title === 'Valores' ? (
                         <div className="text-sm md:text-base text-white/90 font-normal leading-relaxed">

@@ -17,11 +17,11 @@ interface Testimonial {
   updated_at: string
 }
 const TestimonialsSkeleton = () => (
-  <section className="relative py-12 sm:py-16 md:py-20 lg:py-24 overflow-hidden" style={{ 
-    backgroundColor: '#0d0d0d',
+  <section className="relative py-12 sm:py-16 md:py-20 lg:py-24 overflow-hidden" style={{
+    backgroundColor: '#0a1f13',
     backgroundImage: `
-      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
     `,
     backgroundSize: '40px 40px'
   }}>
@@ -134,7 +134,7 @@ export function TestimonialsSection() {
   }, [loading])
   const getTestimonialPages = () => {
     const pages = []
-    const itemsPerPage = isMobile ? 1 : 1 
+    const itemsPerPage = isMobile ? 1 : 1
     for (let i = 0; i < testimonials.length; i += itemsPerPage) {
       const page = testimonials.slice(i, i + itemsPerPage)
       pages.push(page)
@@ -165,7 +165,7 @@ export function TestimonialsSection() {
     if (totalPages <= 1 || isPaused) return
     const interval = setInterval(() => {
       goToNextSlide()
-    }, 5000) 
+    }, 5000)
     return () => clearInterval(interval)
   }, [currentIndex, totalPages, isPaused, goToNextSlide])
   if (loading) {
@@ -173,11 +173,11 @@ export function TestimonialsSection() {
   }
   if (!testimonials.length) {
     return (
-      <section ref={sectionRef} className="relative py-12 sm:py-16 md:py-20 lg:py-24 overflow-hidden" style={{ 
-        backgroundColor: '#0d0d0d',
+      <section ref={sectionRef} className="relative py-12 sm:py-16 md:py-20 lg:py-24 overflow-hidden" style={{
+        backgroundColor: '#0a1f13',
         backgroundImage: `
-          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
+          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
         `,
         backgroundSize: '40px 40px'
       }}>
@@ -231,11 +231,11 @@ export function TestimonialsSection() {
     )
   }
   return (
-    <section ref={sectionRef} className="relative py-12 sm:py-16 md:py-20 lg:py-24 overflow-hidden" style={{ 
-      backgroundColor: '#0d0d0d',
+    <section ref={sectionRef} className="relative py-12 sm:py-16 md:py-20 lg:py-24 overflow-hidden" style={{
+      backgroundColor: '#0a1f13',
       backgroundImage: `
-        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
       `,
       backgroundSize: '40px 40px'
     }}>
@@ -252,9 +252,9 @@ export function TestimonialsSection() {
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.1 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 justify-center text-xs uppercase tracking-[0.25em] text-primary-400 mb-4 font-semibold px-4 py-1 rounded-full border border-primary-400/50 bg-primary-500/10"
+            className="inline-flex items-center gap-2 justify-center text-xs uppercase tracking-[0.2em] text-white/60 mb-4 font-medium px-4 py-1.5 rounded-full border border-white/20 bg-white/5"
           >
-            <ChatCircle size={12} weight="fill" className="text-primary-400" />
+            <ChatCircle size={12} weight="fill" className="text-white/50" />
             depoimentos
           </motion.span>
           <motion.h2
@@ -271,11 +271,11 @@ export function TestimonialsSection() {
               </span>
               <motion.div
                 initial={{ width: 0 }}
-                whileInView={{ 
+                whileInView={{
                   width: ['0%', '100%', '100%', '0%', '0%']
                 }}
                 viewport={{ once: false }}
-                transition={{ 
+                transition={{
                   duration: 12,
                   delay: 0.8,
                   repeat: Infinity,
@@ -306,7 +306,7 @@ export function TestimonialsSection() {
           />
         </motion.div>
         <div className="relative">
-          <div 
+          <div
             className="overflow-hidden"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
@@ -387,11 +387,10 @@ export function TestimonialsSection() {
                       })
                     }
                   }}
-                  className={`slider-dot h-1 sm:h-1.5 rounded-full transition-all duration-300 ${
-                    index === currentIndex
-                      ? 'bg-primary-500 w-5 sm:w-8'
-                      : 'bg-cloud-300 hover:bg-cloud-400 w-1.5 sm:w-2'
-                  }`}
+                  className={`slider-dot h-1 sm:h-1.5 rounded-full transition-all duration-300 ${index === currentIndex
+                    ? 'bg-primary-500 w-5 sm:w-8'
+                    : 'bg-cloud-300 hover:bg-cloud-400 w-1.5 sm:w-2'
+                    }`}
                   aria-label={`Ir para depoimento ${index + 1}`}
                   style={{ minHeight: 'auto', minWidth: 'auto' }}
                 />
@@ -401,18 +400,18 @@ export function TestimonialsSection() {
           <div className="text-center mt-8">
             <Link href="/contato">
               <motion.button
-                whileHover={{ 
-                  scale: 1.02, 
+                whileHover={{
+                  scale: 1.02,
                   y: -1,
                 }}
                 whileTap={{ scale: 0.97 }}
-                transition={{ 
-                  duration: 0.35, 
-                  ease: [0.25, 0.46, 0.45, 0.94] 
+                transition={{
+                  duration: 0.35,
+                  ease: [0.25, 0.46, 0.45, 0.94]
                 }}
                 className="group relative inline-flex items-center gap-3 px-8 py-4 bg-primary-500 text-sand-100 rounded-xl font-semibold text-sm uppercase tracking-[0.2em] shadow-lg shadow-primary-500/25 overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]"
               >
-                <motion.span 
+                <motion.span
                   className="relative z-10"
                   initial={{ x: 0 }}
                   whileHover={{ x: 2 }}

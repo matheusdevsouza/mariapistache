@@ -645,7 +645,6 @@ export default function MediaManager({ productId, onMediaUpdate }: MediaManagerP
       )}
       <PreviewModal />
       
-      {/* Modal de Confirmação de Exclusão */}
       <AnimatePresence>
         {showDeleteConfirm && (
           <motion.div

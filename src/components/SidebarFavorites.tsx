@@ -47,16 +47,16 @@ export default function SidebarFavorites({ open, onClose }: SidebarFavoritesProp
     const size = favorite.size
     const color = favorite.color
     const image = favorite.image || favorite.product.image || '/images/Logo.png'
-    
+
     if (productHasSizes(favorite.product.id)) {
       if (!size || size.trim() === '' || size === 'Selecione') {
         alert('Por favor, selecione um tamanho antes de adicionar ao carrinho.')
         return
       }
     }
-    
+
     addItem(favorite.product, 1, size, color, image)
-    
+
     setTimeout(() => {
       onClose()
     }, 300)
@@ -65,7 +65,7 @@ export default function SidebarFavorites({ open, onClose }: SidebarFavoritesProp
   const isSizeAvailable = (productId: string, size: string): boolean => {
     const sizes = productSizes[productId] || []
     if (sizes.length === 0) return true
-    const sizeData = sizes.find((s: any) => 
+    const sizeData = sizes.find((s: any) =>
       (typeof s === 'string' ? s : s.size) === size
     )
     if (!sizeData) return false
@@ -75,11 +75,11 @@ export default function SidebarFavorites({ open, onClose }: SidebarFavoritesProp
 
   const getSizeStock = (productId: string, size: string): number => {
     const sizes = productSizes[productId] || []
-    const sizeData = sizes.find((s: any) => 
+    const sizeData = sizes.find((s: any) =>
       (typeof s === 'string' ? s : s.size) === size
     )
     if (!sizeData) return 0
-    if (typeof sizeData === 'string') return 999 
+    if (typeof sizeData === 'string') return 999
     return sizeData.stock || 0
   }
 
@@ -95,7 +95,7 @@ export default function SidebarFavorites({ open, onClose }: SidebarFavoritesProp
 
   useEffect(() => {
     if (state.items.length === 0) return
-    
+
     state.items.forEach(favorite => {
       const slug = favorite.product.slug || favorite.product.id
       if (slug && typeof slug === 'string') {
@@ -110,29 +110,29 @@ export default function SidebarFavorites({ open, onClose }: SidebarFavoritesProp
   useEffect(() => {
     if (open) {
       const scrollY = window.scrollY
-      
+
       const htmlElement = document.documentElement
       const bodyElement = document.body
-      
+
       if (htmlElement) {
         htmlElement.classList.add('lenis-stopped')
       }
-      
+
       bodyElement.style.position = 'fixed'
       bodyElement.style.top = `-${scrollY}px`
       bodyElement.style.width = '100%'
       bodyElement.style.overflow = 'hidden'
-      
+
       return () => {
         if (htmlElement) {
           htmlElement.classList.remove('lenis-stopped')
         }
-        
+
         bodyElement.style.position = ''
         bodyElement.style.top = ''
         bodyElement.style.width = ''
         bodyElement.style.overflow = ''
-        
+
         window.scrollTo(0, scrollY)
       }
     }
@@ -150,7 +150,7 @@ export default function SidebarFavorites({ open, onClose }: SidebarFavoritesProp
             className="fixed inset-0 bg-black/60 z-[199]"
             style={{ willChange: 'opacity' }}
           />
-          
+
           <motion.aside
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
@@ -169,8 +169,8 @@ export default function SidebarFavorites({ open, onClose }: SidebarFavoritesProp
                   </span>
                 )}
               </div>
-              <button 
-                onClick={onClose} 
+              <button
+                onClick={onClose}
                 className="text-sage-700 hover:text-primary-600 transition-colors"
               >
                 <X size={28} />
@@ -198,7 +198,7 @@ export default function SidebarFavorites({ open, onClose }: SidebarFavoritesProp
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.2 }}
-                          className="bg-white border border-cloud-100 rounded-xl p-4 hover:border-primary-300 transition-colors shadow-sm relative group"
+                          className="bg-white/90 border border-sage-200/60 rounded-xl p-4 hover:border-primary-300 transition-all duration-300 ease-out shadow-sm relative group"
                           style={{ willChange: 'opacity' }}
                         >
                           <button
@@ -209,7 +209,7 @@ export default function SidebarFavorites({ open, onClose }: SidebarFavoritesProp
                             <Trash size={16} />
                           </button>
 
-                          <Link 
+                          <Link
                             href={`/produto/${favorite.product.slug || favorite.product.id}`}
                             onClick={onClose}
                             className="relative w-full h-48 rounded-lg overflow-hidden bg-sand-100 mb-3 block"
@@ -225,7 +225,7 @@ export default function SidebarFavorites({ open, onClose }: SidebarFavoritesProp
                           </Link>
 
                           <div className="space-y-2">
-                            <Link 
+                            <Link
                               href={`/produto/${favorite.product.slug || favorite.product.id}`}
                               onClick={onClose}
                               className="block"
@@ -234,7 +234,7 @@ export default function SidebarFavorites({ open, onClose }: SidebarFavoritesProp
                                 {favorite.product.name}
                               </h3>
                             </Link>
-                            
+
                             <div className="text-primary-600 font-bold text-base">
                               R$ {favorite.product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </div>
@@ -306,7 +306,7 @@ export default function SidebarFavorites({ open, onClose }: SidebarFavoritesProp
                 </>
               )}
             </div>
-                  
+
             {state.items.length > 0 && (
               <div className="border-t border-cloud-100 px-6 py-4 bg-white">
                 <div className="text-center text-sm text-sage-700">

@@ -599,7 +599,6 @@ export default function ProductDetailPage() {
           </motion.div>
         </motion.div>
 
-        {/* Modal de Gerenciamento de Categorias */}
         <AnimatePresence>
           {showCategoriesModal && (
             <motion.div

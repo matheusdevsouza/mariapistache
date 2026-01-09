@@ -636,7 +636,6 @@ export default function ProductSizesManager({ productId, productName }: ProductS
         )}
       </AnimatePresence>
       
-      {/* Modal de Confirmação de Exclusão */}
       <AnimatePresence>
         {showDeleteConfirm && (
           <motion.div

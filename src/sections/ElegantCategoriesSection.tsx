@@ -7,11 +7,11 @@ import Image from 'next/image'
 import { ArrowRight } from 'phosphor-react'
 
 const CategoriesSkeleton = () => (
-  <section className="relative py-24 overflow-hidden" style={{ 
-    backgroundColor: '#0d0d0d',
+  <section className="relative py-24 overflow-hidden" style={{
+    backgroundColor: '#0a1f13',
     backgroundImage: `
-      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
     `,
     backgroundSize: '40px 40px'
   }}>
@@ -44,33 +44,32 @@ interface Category {
   productCount: number
 }
 const defaultCategories = [
-  { 
-    name: 'Coleção Primavera', 
-    slug: 'primavera', 
+  {
+    name: 'Coleção Primavera',
+    slug: 'primavera',
     description: 'Peças leves e delicadas para a estação',
     image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80'
   },
-  { 
-    name: 'Elegância Clássica', 
-    slug: 'classica', 
+  {
+    name: 'Elegância Clássica',
+    slug: 'classica',
     description: 'Peças atemporais para ocasiões especiais',
     image: 'https://mariapistache.vercel.app/images/elegancia-classe.jpg'
   },
-  { 
-    name: 'Noite & Festa', 
-    slug: 'noite-festa', 
+  {
+    name: 'Noite & Festa',
+    slug: 'noite-festa',
     description: 'Brilhe em qualquer evento',
     image: 'https://mariapistache.vercel.app/images/noite-festa.jpg'
   }
 ]
 
 function CategoryCard({ category, index, defaultImage }: { category: Category & { image?: string }, index: number, defaultImage: string }) {
-  // Ajusta o posicionamento da imagem baseado na categoria
   const getObjectPosition = () => {
     if (category.slug === 'noite-festa') {
-      return 'center top' // Foca no topo para mostrar a cabeça completa
+      return 'center top'
     }
-    return 'center 5%' // Posicionamento padrão para outras categorias
+    return 'center 5%' 
   }
 
   return (
@@ -84,11 +83,11 @@ function CategoryCard({ category, index, defaultImage }: { category: Category & 
         href={`/produtos?categoria=${category.slug}`}
         className="block h-full category-card-link"
       >
-        <div 
+        <div
           className="relative h-[400px] md:h-[450px] rounded-2xl overflow-hidden shadow-lg category-card-container"
         >
           <div className="absolute inset-0 overflow-hidden">
-            <div 
+            <div
               className="absolute inset-0 category-card-image-wrapper"
             >
               <Image
@@ -101,18 +100,18 @@ function CategoryCard({ category, index, defaultImage }: { category: Category & 
                 priority={index === 0}
               />
             </div>
-            <div 
+            <div
               className="absolute inset-0 category-card-overlay"
             />
           </div>
-          
+
           <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 z-10 pointer-events-none">
-            <h3 
+            <h3
               className="text-2xl md:text-3xl font-bold mb-2 pointer-events-auto category-card-title"
             >
               {category.name}
             </h3>
-            <p 
+            <p
               className="text-sm md:text-base mb-4 pointer-events-auto category-card-description"
             >
               {category.description}
@@ -123,9 +122,9 @@ function CategoryCard({ category, index, defaultImage }: { category: Category & 
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 text-sand-100 rounded-lg font-semibold text-sm uppercase tracking-wide shadow-md category-card-button"
               >
                 EXPLORAR
-                <ArrowRight 
-                  size={16} 
-                  weight="bold" 
+                <ArrowRight
+                  size={16}
+                  weight="bold"
                   className="category-card-arrow"
                 />
               </button>
@@ -144,7 +143,7 @@ export function ElegantCategoriesSection() {
       try {
         const response = await fetch('/api/categories')
         const data = await response.json()
-        
+
         const finalCategories = defaultCategories.map((cat, i) => ({
           id: i + 1,
           name: cat.name,
@@ -153,7 +152,7 @@ export function ElegantCategoriesSection() {
           productCount: Math.floor(Math.random() * 50) + 10,
           image: cat.image
         }))
-        
+
         setCategories(finalCategories)
       } catch (error) {
         console.error('Erro ao buscar categorias:', error)
@@ -176,14 +175,14 @@ export function ElegantCategoriesSection() {
     return <CategoriesSkeleton />
   }
   return (
-      <section className="relative py-24 overflow-hidden" style={{ 
-        backgroundColor: '#0d0d0d',
-        backgroundImage: `
-          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
-        `,
-        backgroundSize: '40px 40px'
-      }}>
+    <section className="relative py-24 overflow-hidden" style={{
+      backgroundColor: '#0a1f13',
+      backgroundImage: `
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
+      `,
+      backgroundSize: '40px 40px'
+    }}>
       <div className="container mx-auto px-4 relative" style={{ zIndex: 10 }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -192,8 +191,8 @@ export function ElegantCategoriesSection() {
           transition={{ duration: 0.8 }}
           className="text-center mb-8 sm:mb-12 md:mb-16 relative"
         >
-          <span className="relative z-20 inline-flex items-center gap-2 justify-center text-xs uppercase tracking-[0.25em] text-primary-400 mb-4 font-semibold px-4 py-1 rounded-full border border-primary-400/50 bg-primary-500/10">
-            <GridFour size={12} weight="fill" className="text-primary-400" />
+          <span className="relative z-20 inline-flex items-center gap-2 justify-center text-xs uppercase tracking-[0.2em] text-white/60 mb-4 font-medium px-4 py-1.5 rounded-full border border-white/20 bg-white/5">
+            <GridFour size={12} weight="fill" className="text-white/50" />
             categorias em destaque
           </span>
           <h2 className="relative z-20 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-sand-100 mb-4 flex items-center justify-center gap-4 sm:gap-6 md:gap-8">
@@ -201,15 +200,15 @@ export function ElegantCategoriesSection() {
               <span>Explore o universo </span>
               <span className="relative inline-block">
                 <span className="relative z-10 bg-gradient-to-r from-primary-400 via-primary-300 to-primary-400 bg-clip-text text-transparent">
-                Maria Pistache
+                  Maria Pistache
                 </span>
                 <motion.div
                   initial={{ width: 0 }}
-                  whileInView={{ 
+                  whileInView={{
                     width: ['0%', '100%', '100%', '0%', '0%']
                   }}
                   viewport={{ once: false }}
-                  transition={{ 
+                  transition={{
                     duration: 12,
                     delay: 0.8,
                     repeat: Infinity,

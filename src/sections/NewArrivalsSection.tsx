@@ -5,6 +5,7 @@ import { formatPrice } from '@/lib/utils'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, Sparkle } from 'phosphor-react'
+import { ProductCard, ProductCardSkeleton } from '@/components/ProductCard'
 
 const NewArrivalsSkeleton = () => (
   <section className="relative py-16 sm:py-24 md:py-32 overflow-hidden bg-sand-100">
@@ -75,11 +76,11 @@ export function NewArrivalsSection() {
     },
   }
   const hasProducts = products && products.length > 0
-  
+
   if (loading) {
     return <NewArrivalsSkeleton />
   }
-  
+
   return (
     <section
       ref={sectionRef}
@@ -96,9 +97,9 @@ export function NewArrivalsSection() {
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : { opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="inline-flex items-center gap-2 justify-center text-xs uppercase tracking-[0.25em] text-primary-600 mb-4 font-semibold px-4 py-1 rounded-full border border-primary-600"
+            className="inline-flex items-center gap-2 justify-center text-xs uppercase tracking-[0.2em] text-sage-500 mb-4 font-medium px-4 py-1.5 rounded-full border border-sage-300/50 bg-sage-100/50"
           >
-            <Sparkle size={12} weight="fill" className="text-primary-600" />
+            <Sparkle size={12} weight="fill" className="text-sage-400" />
             novidades da semana
           </motion.span>
           <motion.h2
@@ -114,10 +115,10 @@ export function NewArrivalsSection() {
               </span>
               <motion.div
                 initial={{ width: 0 }}
-                animate={isInView ? { 
+                animate={isInView ? {
                   width: ['0%', '100%', '100%', '0%', '0%']
                 } : { width: 0 }}
-                transition={{ 
+                transition={{
                   duration: 12,
                   delay: 0.8,
                   repeat: Infinity,
@@ -157,90 +158,47 @@ export function NewArrivalsSection() {
             </p>
           </motion.div>
         ) : (
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? 'visible' : 'visible'}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8"
-        >
-          {products.map((product, index) => {
-            return (
-              <motion.div
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate={isInView ? 'visible' : 'visible'}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8"
+          >
+            {products.map((product, index) => (
+              <ProductCard
                 key={product.id}
-                variants={itemVariants}
-                whileHover={{ y: -12, scale: 1.02 }}
-                transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="group relative"
-              >
-                <Link href={`/produto/${product.slug}`} className="block h-full">
-                  <div className="relative h-full bg-white rounded-2xl overflow-hidden shadow-md group-hover:shadow-2xl transition-all duration-500 border border-cloud-200/50 group-hover:border-primary-400/50">
-                    <div className="relative aspect-[3/4] overflow-hidden bg-sand-50">
-                      <motion.div
-                        className="absolute inset-0"
-                        whileHover={{ scale: 1.08 }}
-                        transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-                      >
-                        <Image
-                          src={product.primary_image || (product.images && product.images[0]?.url) || 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=600&q=80'}
-                          alt={product.name}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-cover"
-                          priority={index < 2}
-                        />
-                      </motion.div>
-                    </div>
-                    
-                    <div className="p-5 bg-white">
-                      <h3 className="font-semibold text-base text-sage-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors duration-300 min-h-[3rem]">
-                        {product.name}
-                      </h3>
-                      <div className="flex items-center justify-between mb-4">
-                        <p className="text-2xl font-bold text-primary-600">
-                          {formatPrice(product.price)}
-                        </p>
-                      </div>
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 group/btn shadow-sm hover:shadow-md"
-                      >
-                        <span className="text-sm">Ver detalhes</span>
-                        <ArrowRight size={16} weight="bold" className="group-hover/btn:translate-x-1 transition-transform duration-300" />
-                      </motion.div>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            )
-          })}
-        </motion.div>
+                product={product}
+                index={index}
+                priority={index < 2}
+              />
+            ))}
+          </motion.div>
         )}
         {hasProducts && (
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
             className="text-center mt-8 sm:mt-12 md:mt-16"
-        >
-          <Link href="/produtos?novidades=true">
-            <button
+          >
+            <Link href="/produtos?novidades=true">
+              <button
                 className="group relative inline-flex items-center gap-2 md:gap-3 px-4 md:px-8 py-3 md:py-4 bg-primary-500 text-sand-100 rounded-full font-semibold text-xs md:text-sm uppercase tracking-[0.15em] md:tracking-[0.2em] shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/50 transition-all duration-300 overflow-hidden"
-            >
-              <span className="relative z-10 whitespace-nowrap">Ver Todas as Novidades</span>
-              <ArrowRight size={18} weight="thin" className="relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
-            </button>
-          </Link>
-        </motion.div>
+              >
+                <span className="relative z-10 whitespace-nowrap">Ver Todas as Novidades</span>
+                <ArrowRight size={18} weight="thin" className="relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
+              </button>
+            </Link>
+          </motion.div>
         )}
       </div>
-      <div className="custom-shape-divider-bottom absolute bottom-0 left-0 w-full overflow-hidden leading-none pointer-events-none" style={{ 
+      <div className="custom-shape-divider-bottom absolute bottom-0 left-0 w-full overflow-hidden leading-none pointer-events-none" style={{
         backgroundImage: `
-          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
+          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
         `,
         backgroundSize: '40px 40px',
-        backgroundColor: '#0d0d0d'
+        backgroundColor: '#0a1f13'
       }}>
         <svg
           data-name="Layer 1"

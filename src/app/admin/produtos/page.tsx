@@ -1089,7 +1089,6 @@ export default function ProdutosPage() {
         </div>
       )}
       
-      {/* Modal de Confirmação de Exclusão de Produto */}
       <AnimatePresence>
         {showDeleteProductConfirm && (
         <motion.div
@@ -1148,7 +1147,6 @@ export default function ProdutosPage() {
       )}
     </AnimatePresence>
 
-    {/* Modal de Confirmação de Remoção de Categoria */}
     <AnimatePresence>
       {showDeleteCategoryConfirm && categoryToDelete && (
         <motion.div

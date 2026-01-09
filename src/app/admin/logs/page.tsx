@@ -229,7 +229,6 @@ export default function AdminLogs() {
         </div>
       </motion.div>
 
-      {/* Estatísticas */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -303,7 +302,6 @@ export default function AdminLogs() {
         </div>
       </motion.div>
 
-      {/* Filtros e Busca */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -373,7 +371,6 @@ export default function AdminLogs() {
         </div>
       </motion.div>
 
-      {/* Tabela de Logs */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -476,7 +473,6 @@ export default function AdminLogs() {
         </div>
       </motion.div>
 
-      {/* Modal de Detalhes */}
       {selectedLog && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <motion.div
@@ -561,7 +557,6 @@ export default function AdminLogs() {
         </div>
       )}
 
-      {/* Paginação */}
       {totalPages > 1 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}

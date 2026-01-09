@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
+import { ProductCard, ProductCardSkeleton } from "@/components/ProductCard";
 function ProdutosContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -16,7 +17,7 @@ function ProdutosContent() {
   const [precoMax, setPrecoMax] = useState(2000);
   const [filtros, setFiltros] = useState<{ preco: number[]; order: string }>({ preco: [0, 2000], order: '' });
   const [precoEmEdicao, setPrecoEmEdicao] = useState<number | null>(null);
-  
+
   useEffect(() => {
     const search = searchParams.get('search');
     const categoria = searchParams.get('categoria');
@@ -27,7 +28,7 @@ function ProdutosContent() {
       setCategoriaSelecionada(categoria);
     }
   }, [searchParams]);
-  
+
   useEffect(() => {
     async function fetchFiltros() {
       const resCategorias = await fetch('/api/categories');
@@ -46,7 +47,7 @@ function ProdutosContent() {
     }
     fetchFiltros();
   }, []);
-  
+
   useEffect(() => {
     async function fetchProdutos() {
       setLoading(true);
@@ -100,7 +101,7 @@ function ProdutosContent() {
   function handleCategoriaClick(slug: string) {
     const newCategoria = categoriaSelecionada === slug ? null : slug;
     setCategoriaSelecionada(newCategoria);
-    const newUrl = newCategoria 
+    const newUrl = newCategoria
       ? `/produtos?categoria=${newCategoria}`
       : '/produtos';
     window.history.pushState({}, '', newUrl);
@@ -114,23 +115,23 @@ function ProdutosContent() {
             <div className="h-6 bg-cloud-100 rounded-md mx-auto max-w-lg"></div>
           </div>
         ) : (
-          <motion.div 
+          <motion.div
             className="text-center mb-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-3xl md:text-4xl font-extrabold text-sage-900 mb-2 text-center">
-              {searchQuery 
-                ? `Resultados para "${searchQuery}"` 
+              {searchQuery
+                ? `Resultados para "${searchQuery}"`
                 : categoriaSelecionada
                   ? categorias.find(c => c.slug === categoriaSelecionada)?.name || 'Produtos'
                   : 'Todos os Produtos'
               }
             </h1>
             <p className="text-sage-800 text-lg mb-8 text-center">
-              {searchQuery 
-                ? `${produtos.length} produto(s) encontrado(s)` 
+              {searchQuery
+                ? `${produtos.length} produto(s) encontrado(s)`
                 : categoriaSelecionada
                   ? `${produtos.length} produto(s) nesta categoria`
                   : 'Encontre o produto perfeito para você'
@@ -157,7 +158,7 @@ function ProdutosContent() {
         <div className="flex flex-col md:flex-row gap-8">
           <div className="md:w-64 md:self-start">
             {loading ? (
-              <aside className="w-full bg-primary-50 border border-cloud-100 rounded-2xl p-6 mb-4 md:mb-0 shadow-sm md:sticky md:top-8 animate-pulse">
+              <aside className="w-full bg-white border border-cloud-200 rounded-2xl p-6 mb-4 md:mb-0 shadow-sm md:sticky md:top-8 animate-pulse">
                 <h2 className="text-lg font-bold text-sage-900 mb-4">Filtrar</h2>
                 <div className="mb-6">
                   <div className="h-4 w-20 bg-cloud-100 rounded mb-2" />
@@ -178,7 +179,7 @@ function ProdutosContent() {
                 </div>
               </aside>
             ) : (
-              <aside className="w-full bg-primary-50 border border-cloud-100 rounded-2xl p-6 mb-4 md:mb-0 shadow-sm md:sticky md:top-8">
+              <aside className="w-full bg-white border border-cloud-200 rounded-2xl p-6 mb-4 md:mb-0 shadow-sm md:sticky md:top-8">
                 <h2 className="text-lg font-bold text-sage-900 mb-4">Filtrar</h2>
                 <div className="mb-6">
                   <label className="block text-sage-900 font-semibold mb-2">Categorias</label>
@@ -188,8 +189,8 @@ function ProdutosContent() {
                         key={categoria.slug}
                         onClick={() => handleCategoriaClick(categoria.slug)}
                         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all text-sm
-                          ${categoriaSelecionada === categoria.slug 
-                            ? 'bg-primary-500 text-white border-primary-600 shadow-sm' 
+                          ${categoriaSelecionada === categoria.slug
+                            ? 'bg-primary-500 text-white border-primary-600 shadow-sm'
                             : 'bg-white border-cloud-200 text-sage-800 hover:bg-primary-50 hover:border-primary-300 hover:text-primary-600'
                           }`}
                       >
@@ -210,13 +211,13 @@ function ProdutosContent() {
                       <>
                         <div className="flex items-center gap-2">
                           <span className="text-sage-700 text-sm">{precoMin.toFixed(1)}</span>
-                          <input 
-                            type="range" 
-                            min={precoMin} 
-                            max={precoMax} 
-                            step={10} 
-                            value={valorSlider} 
-                            onChange={handlePrecoChange} 
+                          <input
+                            type="range"
+                            min={precoMin}
+                            max={precoMax}
+                            step={10}
+                            value={valorSlider}
+                            onChange={handlePrecoChange}
                             className="w-full h-2 bg-cloud-200 rounded-lg appearance-none cursor-pointer slider"
                             style={{
                               background: `linear-gradient(to right, #0F4024 0%, #0F4024 ${percentual}%, #D9D9D9 ${percentual}%, #D9D9D9 100%)`
@@ -250,15 +251,7 @@ function ProdutosContent() {
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {Array.from({ length: 10 }).map((_, i) => (
-                  <div key={i} className="group bg-sage-50 rounded-2xl overflow-hidden border border-cloud-100 flex flex-col items-center p-4 shadow-sm animate-pulse">
-                    <div className="relative w-full aspect-[3/4] rounded-xl overflow-hidden mb-3 bg-cloud-100">
-                      <div className="absolute inset-0 bg-cloud-200 animate-pulse" />
-                    </div>
-                    <div className="h-4 w-3/4 bg-cloud-100 rounded mb-2 animate-pulse" />
-                    <div className="h-3 w-1/2 bg-cloud-100 rounded mb-1 animate-pulse" />
-                    <div className="h-5 w-1/2 bg-cloud-100 rounded mb-2 animate-pulse" />
-                    <div className="w-full h-8 bg-cloud-100 rounded-xl mt-auto animate-pulse" />
-                  </div>
+                  <ProductCardSkeleton key={i} />
                 ))}
               </div>
             ) : produtos.length === 0 ? (
@@ -267,68 +260,13 @@ function ProdutosContent() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {produtos.map((prod) => (
-                  <Link
+                {produtos.map((prod, index) => (
+                  <ProductCard
                     key={prod.id}
-                    href={`/produto/${prod.slug}`}
-                    className="group relative bg-white rounded-2xl overflow-hidden border border-cloud-200 hover:border-primary-300 transition-all duration-300 shadow-md hover:shadow-xl"
-                  >
-                    <div className="relative w-full aspect-[2/3] overflow-hidden bg-cloud-100">
-                      <Image 
-                        src={prod.primary_image || (prod.images && prod.images[0]?.url) || prod.image || '/images/logo.png'} 
-                        alt={prod.name} 
-                        fill 
-                        className="object-cover group-hover:scale-110 transition-transform duration-700" 
-                        sizes="(max-width: 768px) 100vw, 220px" 
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-sage-900/70 via-sage-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-5 z-10">
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          whileHover={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="opacity-0 group-hover:opacity-100"
-                        >
-                          <h3 className="text-white font-semibold text-base sm:text-lg mb-2 line-clamp-2 drop-shadow-lg">
-                            {prod.name}
-                          </h3>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xl sm:text-2xl font-bold text-white drop-shadow-lg">
-                              R$ {Number(prod.price).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </span>
-                            <motion.div
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              className="bg-primary-500 hover:bg-primary-600 text-white rounded-full p-2 shadow-lg"
-                            >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                              </svg>
-                            </motion.div>
-                          </div>
-                        </motion.div>
-                      </div>
-                    </div>
-                    <div className="p-4 sm:p-5 bg-white flex flex-col">
-                      <h3 className="text-base sm:text-lg font-semibold text-sage-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors duration-300">
-                        {prod.name}
-                      </h3>
-                      <span className="text-xl sm:text-2xl font-bold text-primary-600 mb-3">
-                        R$ {Number(prod.price).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-300 text-sm sm:text-base mt-auto"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          router.push(`/produto/${prod.slug}`);
-                        }}
-                      >
-                        Ver Detalhes
-                      </motion.button>
-                    </div>
-                  </Link>
+                    product={prod}
+                    index={index}
+                    priority={index < 5}
+                  />
                 ))}
               </div>
             )}

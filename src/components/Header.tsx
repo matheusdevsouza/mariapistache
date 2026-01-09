@@ -116,14 +116,15 @@ export function Header() {
                 onBlur={() => setIsSearchFocused(false)}
               >
                 <div
-                  className={`relative flex items-center bg-white border-2 border-primary-500 rounded-full px-4 py-2.5 transition-all duration-300 shadow-sm ${
-                    isSearchFocused ? 'ring-2 ring-primary-300 shadow-md shadow-primary-200 border-primary-500' : ''
-                  }`}
+                  className={`relative flex items-center bg-white border rounded-full px-4 py-2.5 transition-all duration-300 ${isSearchFocused
+                    ? 'border-sage-400 shadow-lg shadow-primary-100/40 ring-1 ring-primary-200/50'
+                    : 'border-sage-200 shadow-sm hover:border-sage-300 hover:shadow-md'
+                    }`}
                 >
-                  <MagnifyingGlass 
-                    size={20} 
-                    weight="regular" 
-                    className="text-sage-600 mr-3 flex-shrink-0" 
+                  <MagnifyingGlass
+                    size={20}
+                    weight="regular"
+                    className="text-sage-600 mr-3 flex-shrink-0"
                   />
                   <input
                     type="text"
@@ -131,7 +132,7 @@ export function Header() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch(e)}
-                    className="flex-1 bg-transparent text-sage-900 placeholder-sage-600 focus:outline-none text-sm w-full"
+                    className="flex-1 bg-transparent text-sage-800 placeholder-sage-500 focus:outline-none text-sm font-normal w-full"
                   />
                   {searchQuery && (
                     <motion.button
@@ -157,7 +158,7 @@ export function Header() {
               >
                 <Truck size={20} weight="regular" className="relative z-10" />
               </motion.button>
-              
+
               <motion.button
                 whileHover={{ scale: 1.1, y: -2 }}
                 whileTap={{ scale: 0.95 }}
@@ -176,7 +177,7 @@ export function Header() {
                   </motion.span>
                 )}
               </motion.button>
-              
+
               <motion.button
                 whileHover={{ scale: 1.1, y: -2 }}
                 whileTap={{ scale: 0.95 }}
@@ -195,7 +196,7 @@ export function Header() {
                   </motion.span>
                 )}
               </motion.button>
-              
+
               <div className="relative">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -207,18 +208,18 @@ export function Header() {
                 >
                   <User size={18} weight="regular" className="relative z-10" />
                   <span className="relative z-10 font-medium text-sm hidden sm:inline">
-                    {authenticated && user 
+                    {authenticated && user
                       ? (() => {
-                          const displayName = user.display_name?.trim();
-                          const userName = user.name?.trim();
-                          if (displayName && displayName !== '' && displayName !== '[Dados protegidos]') {
-                            return displayName;
-                          }
-                          if (userName && userName !== '' && userName !== 'Usuário' && userName !== '[Dados protegidos]') {
-                            return userName.split(' ')[0];
-                          }
-                          return 'Conta';
-                        })()
+                        const displayName = user.display_name?.trim();
+                        const userName = user.name?.trim();
+                        if (displayName && displayName !== '' && displayName !== '[Dados protegidos]') {
+                          return displayName;
+                        }
+                        if (userName && userName !== '' && userName !== 'Usuário' && userName !== '[Dados protegidos]') {
+                          return userName.split(' ')[0];
+                        }
+                        return 'Conta';
+                      })()
                       : 'Conta'}
                   </span>
                 </motion.button>
@@ -288,8 +289,8 @@ export function Header() {
                           <div className="border-t border-cloud-100 my-2 mx-2"></div>
                           <div className="pt-2 px-2 pb-2">
                             <button
-                              onClick={async () => { 
-                                await logout(); 
+                              onClick={async () => {
+                                await logout();
                                 setUserMenuOpen(false);
                                 if (pathname.startsWith('/admin')) {
                                   router.push('/');
@@ -306,41 +307,35 @@ export function Header() {
                         </>
                       ) : (
                         <>
-                          <a href="/login" className={`group flex items-center gap-3 px-5 py-3 transition-colors rounded-lg mx-2 ${
-                            pathname === '/login' 
-                          ? 'bg-primary-50 text-primary-600 font-medium' 
-                              : 'text-sage-800 hover:bg-primary-50 hover:text-primary-600'
-                          }`}>
-                            <User size={18} className={`transition-colors ${
-                              pathname === '/login' 
-                                ? 'text-primary-600' 
-                                : 'text-sage-600 group-hover:text-primary-600'
-                            }`} weight="regular" />
+                          <a href="/login" className={`group flex items-center gap-3 px-5 py-3 transition-colors rounded-lg mx-2 ${pathname === '/login'
+                            ? 'bg-primary-50 text-primary-600 font-medium'
+                            : 'text-sage-800 hover:bg-primary-50 hover:text-primary-600'
+                            }`}>
+                            <User size={18} className={`transition-colors ${pathname === '/login'
+                              ? 'text-primary-600'
+                              : 'text-sage-600 group-hover:text-primary-600'
+                              }`} weight="regular" />
                             <span className="text-sm">Fazer Login</span>
                           </a>
-                          <a href="/criar-conta" className={`group flex items-center gap-3 px-5 py-3 transition-colors rounded-lg mx-2 ${
-                            pathname === '/criar-conta' 
-                              ? 'bg-primary-50 text-primary-600 font-medium' 
-                              : 'text-sage-800 hover:bg-primary-50 hover:text-primary-600'
-                          }`}>
-                            <UserPlus size={18} className={`transition-colors ${
-                              pathname === '/criar-conta' 
-                                ? 'text-primary-600' 
-                                : 'text-sage-600 group-hover:text-primary-600'
-                            }`} weight="regular" />
+                          <a href="/criar-conta" className={`group flex items-center gap-3 px-5 py-3 transition-colors rounded-lg mx-2 ${pathname === '/criar-conta'
+                            ? 'bg-primary-50 text-primary-600 font-medium'
+                            : 'text-sage-800 hover:bg-primary-50 hover:text-primary-600'
+                            }`}>
+                            <UserPlus size={18} className={`transition-colors ${pathname === '/criar-conta'
+                              ? 'text-primary-600'
+                              : 'text-sage-600 group-hover:text-primary-600'
+                              }`} weight="regular" />
                             <span className="text-sm">Criar Conta</span>
                           </a>
                           <div className="border-t border-cloud-100 my-2 mx-2"></div>
-                          <a href="/contato" className={`group flex items-center gap-3 px-5 py-3 transition-colors rounded-lg mx-2 ${
-                            pathname === '/contato' 
-                            ? 'bg-primary-50 text-primary-600 font-medium' 
+                          <a href="/contato" className={`group flex items-center gap-3 px-5 py-3 transition-colors rounded-lg mx-2 ${pathname === '/contato'
+                            ? 'bg-primary-50 text-primary-600 font-medium'
                             : 'text-sage-800 hover:bg-primary-50 hover:text-primary-600'
-                          }`}>
-                            <EnvelopeSimple size={18} className={`transition-colors ${
-                              pathname === '/contato' 
-                                ? 'text-primary-600' 
-                                : 'text-sage-600 group-hover:text-primary-600'
-                            }`} weight="regular" />
+                            }`}>
+                            <EnvelopeSimple size={18} className={`transition-colors ${pathname === '/contato'
+                              ? 'text-primary-600'
+                              : 'text-sage-600 group-hover:text-primary-600'
+                              }`} weight="regular" />
                             <span className="text-sm">Contato</span>
                           </a>
                         </>
@@ -367,25 +362,26 @@ export function Header() {
           <div className="lg:hidden pb-4">
             <form onSubmit={handleSearch} className="relative">
               <div
-                className={`relative flex items-center bg-white border-2 border-primary-500 rounded-full px-4 py-3 transition-all duration-300 shadow-sm ${
-                  isSearchFocused ? 'ring-2 ring-primary-300 shadow-md shadow-primary-200 border-primary-500' : ''
-                }`}
+                className={`relative flex items-center bg-white border rounded-full px-4 py-3 transition-all duration-300 ${isSearchFocused
+                  ? 'border-sage-400 shadow-lg shadow-primary-100/40 ring-1 ring-primary-200/50'
+                  : 'border-sage-200 shadow-sm hover:border-sage-300'
+                  }`}
               >
-                <MagnifyingGlass 
-                  size={20} 
-                  weight="regular" 
-                  className="text-sage-600 mr-3 flex-shrink-0" 
+                <MagnifyingGlass
+                  size={20}
+                  weight="regular"
+                  className="text-sage-600 mr-3 flex-shrink-0"
                 />
-                  <input
-                    type="text"
-                    placeholder="Buscar produtos..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch(e)}
-                    onFocus={() => setIsSearchFocused(true)}
-                    onBlur={() => setIsSearchFocused(false)}
-                  className="flex-1 bg-transparent text-sage-900 placeholder-sage-600 focus:outline-none text-sm"
-                  />
+                <input
+                  type="text"
+                  placeholder="Buscar produtos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch(e)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setIsSearchFocused(false)}
+                  className="flex-1 bg-transparent text-sage-800 placeholder-sage-500 focus:outline-none text-sm font-normal"
+                />
                 {searchQuery && (
                   <motion.button
                     type="button"
@@ -402,7 +398,7 @@ export function Header() {
           </div>
         </div>
       </div>
-      <div 
+      <div
         className="bg-primary-500 relative z-40"
       >
         <div className="container mx-auto px-4">
@@ -414,21 +410,17 @@ export function Header() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                whileHover={{ y: -2, scale: 1.05 }}
+                whileHover={{ scale: 1.05 }}
                 className="relative px-6 py-2.5 text-sand-100 font-medium text-sm uppercase tracking-wide rounded-xl group overflow-hidden"
               >
                 <motion.div
-                  className="absolute inset-0 bg-sand-100/5 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300"
+                  className="absolute inset-0 bg-white/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300"
                   initial={false}
                 />
                 <motion.div
-                  className="absolute bottom-1 left-1/2 h-[2px] w-10 sm:w-16 bg-sand-100 rounded-full opacity-0 group-hover:opacity-100 -translate-x-1/2"
-                  initial={{ scaleX: 0, originX: 0.5 }}
-                  whileHover={{ scaleX: 1 }}
-                  transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
-                  style={{ transformOrigin: 'center' }}
+                  className="absolute bottom-1.5 left-1/2 h-[2px] w-0 group-hover:w-12 bg-sand-100 rounded-full opacity-0 group-hover:opacity-100 -translate-x-1/2 transition-all duration-300"
                 />
-                <span className="relative z-10 block transition-all duration-300 group-hover:font-semibold">
+                <span className="relative z-10 block transition-all duration-300 group-hover:text-white">
                   {item.label}
                 </span>
               </motion.a>
@@ -473,7 +465,7 @@ export function Header() {
                     <X size={24} weight="bold" />
                   </button>
                 </div>
-                
+
                 <div className="flex-1 overflow-y-auto px-6 py-8">
                   <nav className="space-y-3">
                     {menuItems.map((item) => (
